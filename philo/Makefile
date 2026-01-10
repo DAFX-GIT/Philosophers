@@ -6,7 +6,7 @@
 #    By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/05 13:39:36 by adastugu          #+#    #+#              #
-#    Updated: 2026/01/06 14:14:01 by adastugu         ###   ########.fr        #
+#    Updated: 2026/01/09 17:42:48 by adastugu         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ NAME_BONUS = philo_bonus
 RM = rm -rf
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g -pthread
+CFLAGS = -Wall -Wextra  -g -pthread -Werror
 
 INC_DIR = .
 
@@ -24,7 +24,7 @@ MANDATORY_DIR = srcs/mandatory
 COMMON_DIR = srcs/common
 BONUS_DIR = srcs/bonus
 
-MANDATORY_SRCS = main.c routine.c
+MANDATORY_SRCS = main.c routine.c forks.c
 COMMON_SRCS = parse.c utils.c
 
 OBJS_DIR = objs

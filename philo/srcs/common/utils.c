@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 16:33:01 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/06 16:04:16 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/09 17:42:51 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,19 +43,19 @@ int	nb_len(long nb)
 	return (count);
 }
 
-long get_time_ms(void)
+long get_time_ms(t_state *p)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000L + tv.tv_usec / 1000L);
+    return ((tv.tv_sec * 1000L + tv.tv_usec / 1000L) - p->start_time);
 }
 
-void sub_clamped(long *value, long delta)
+void print_status(t_state *p, char *msg)
 {
-    if (*value > 0)
-    {
-        *value -= delta;
-        if (*value < 0)
-            *value = 0;
-    }
+	if(!p->sim->stop)
+	{
+		pthread_mutex_lock(&p->sim->print_lock);
+		printf("%ld %d %s\n", get_time_ms(p), p->id, msg);
+		pthread_mutex_unlock(&p->sim->print_lock);
+	}
 }

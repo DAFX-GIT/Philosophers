@@ -6,134 +6,167 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 18:02:48 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/06 17:05:16 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/10 18:29:37 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	ini_state(t_state *pstate, int i, t_philo *philo,
+void	ini_state(t_state *pstate, t_sim *sim, t_philo *philo,
 		pthread_mutex_t *forks)
 {
-	pstate->id = i;
-	pstate->tl2live = philo->t2die;
-	pstate->tl2eat = 0;
-	pstate->tl2sleep = 0;
-	pstate->lstuptim = get_time_ms();
-	pstate->right_fork = &forks[i];
-	pstate->left_fork = &forks[(i + 1) % philo->nbof_philos];
-	pstate->is_eating = 0;
-	pstate->is_sleeping = 0;
-	pstate->elasp_time = 0;
+	pstate->id = philo->i;
+	pstate->done = 0;
+	pstate->last_meal = get_time_ms(pstate);
+	pstate->last_action = get_time_ms(pstate);
+	pstate->rfk = 0;
+	pstate->lfk = 0;
+	pstate->right_fork = &forks[philo->i];
+	pstate->left_fork = &forks[(philo->i + 1) % philo->nbof_philos];
+	pstate->state = THINKING;
+	pstate->t2die = philo->t2die;
+	pstate->t2eat = philo->t2eat;
+	pstate->t2sleep = philo->t2sleep;
+	pstate->eaten = 0;
+	pstate->musteat = philo->musteat;
+	pthread_mutex_init(&pstate->state_lock, NULL);
+	pstate->sim = sim;
+	pstate->start_time = get_time_ms(pstate);
 	printf("Philosopher nb:%d is born\n", pstate->id);
 }
 
-void	update_time(t_state *pstate)
+void	to_eat(t_state *p)
 {
-	long	now;
-
-	now = get_time_ms();
-	pstate->elasp_time = now - pstate->lstuptim;
-	pstate->lstuptim = now;
-	sub_clamped(&pstate->tl2live, pstate->elasp_time);
-	sub_clamped(&pstate->tl2eat, pstate->elasp_time);
-	sub_clamped(&pstate->tl2sleep, pstate->elasp_time);
-}
-
-void	lock_forks(t_state *pstate)
-{
-	if (pstate->id % 2 == 0)
+	if (p->state == THINKING)
 	{
-		pthread_mutex_lock(pstate->right_fork);
-		printf("Philosopher nb:%d has taken his right fork\n", pstate->id);
-		pthread_mutex_lock(pstate->left_fork);
-		printf("Philosopher nb:%d has taken his left fork\n", pstate->id);
-	}
-	else
-	{
-		pthread_mutex_lock(pstate->left_fork);
-		printf("Philosopher nb:%d has taken his left fork\n", pstate->id);
-		pthread_mutex_lock(pstate->right_fork);
-		printf("Philosopher nb:%d has taken his right fork\n", pstate->id);
+		lock_forks(p);
+		p->last_meal = get_time_ms(p);
+		p->state = EATING;
+		p->last_action = get_time_ms(p);
+		print_status(p, "is eating");
 	}
 }
-void unlock_forks(t_state *pstate)
+
+void	to_sleep_and_think(t_state *p)
 {
-	pthread_mutex_unlock(pstate->right_fork);
-	pthread_mutex_unlock(pstate->left_fork);
+	if (p->state == EATING && get_time_ms(p) - p->last_action >= p->t2eat)
+	{
+		unlock_forks(p);
+		p->state = SLEEPING;
+		p->last_action = get_time_ms(p);
+		p->eaten++;
+		print_status(p, "is sleeping");
+	}
+	if (p->state == SLEEPING && get_time_ms(p) - p->last_action >= p->t2sleep)
+	{
+		p->state = THINKING;
+		print_status(p, "is thinking");
+	}
 }
+
 void	*life(void *arg)
 {
-    t_state *pstate;
-    pstate = (t_state *)arg;
-	while (pstate->tl2live > 0)
+	t_state	*p;
+
+	p = (t_state *)arg;
+	p->last_meal = get_time_ms(p);
+	/* if (p->id % 2 == 1)
+		usleep(2000); */
+	while (1)
 	{
-		update_time(pstate);
-		if (pstate->is_eating == 0 && pstate->is_sleeping == 0)
+		pthread_mutex_lock(&p->sim->stop_lock);
+		if (p->sim->stop)
 		{
-			lock_forks(pstate);
-			pstate->is_eating = 1;
-			pstate->tl2eat = pstate->t2eat;
-			printf("Philosopher nb:%d has started eating\n", pstate->id);
+			pthread_mutex_unlock(&p->sim->stop_lock);
+			break ;
 		}
-		if (pstate->is_eating == 1 && pstate->tl2eat == 0)
+		pthread_mutex_unlock(&p->sim->stop_lock);
+		to_eat(p);
+		if (p->musteat > 0 && p->eaten >= p->musteat && !p->done)
 		{
-			unlock_forks(pstate);
-			pstate->is_eating = 0;
-			pstate->is_sleeping = 1;
-			pstate->tl2sleep = pstate->t2sleep;
-			pstate->tl2live = pstate->t2die;
-			printf("Philosopher nb:%d has finished eating and started sleeping\n", pstate->id);
+			p->done = 1;
+			pthread_mutex_lock(&p->sim->stop_lock);
+			p->sim->philos_done++;
+			if (p->sim->philos_done >= p->sim->nbof_philos)
+			{
+				p->sim->stop = 1;
+				pthread_mutex_lock(&p->sim->print_lock);
+				printf("%ld %s\n", get_time_ms(p),
+					"All philosophers have eaten their fill");
+				pthread_mutex_unlock(&p->sim->print_lock);
+			}
+			pthread_mutex_unlock(&p->sim->stop_lock);
 		}
-		if (pstate->is_sleeping == 1 && pstate->tl2sleep == 0)
-		{
-			pstate->is_sleeping = 0;
-			printf("Philosopher nb:%d has finished sleeping\n", pstate->id);
-		}
-		usleep(1000);
+		to_sleep_and_think(p);
+		usleep(100);
 	}
-	printf("Philosopher nb:%d died\n", pstate->id);
+	unlock_frk_leftover(p);
 	return (NULL);
+}
+
+void	ini_sim(t_sim *sim, t_philo *philo)
+{
+	sim->stop = 0;
+	sim->philos_done = 0;
+	sim->nbof_philos = philo->nbof_philos;
+	pthread_mutex_init(&sim->stop_lock, NULL);
+	pthread_mutex_init(&sim->print_lock, NULL);
 }
 
 void	born2philo(t_philo *philo)
 {
-	int				i;
 	pthread_t		philothread[philo->nbof_philos];
 	t_state			*pstate;
 	pthread_mutex_t	*forks;
+	t_sim			*sim;
 
-	i = 0;
+	philo->i = 0;
 	forks = malloc(sizeof(pthread_mutex_t) * philo->nbof_philos);
 	pstate = malloc(sizeof(t_state) * philo->nbof_philos);
-	while (i < philo->nbof_philos)
+	sim = malloc(sizeof(t_sim));
+	ini_sim(sim, philo);
+	while (philo->i < philo->nbof_philos)
 	{
-		ini_state(&pstate[i], i, philo, forks);
-		pthread_mutex_init(&forks[i], NULL);
-		i++;
+		pthread_mutex_init(&forks[philo->i], NULL);
+		ini_state(&pstate[philo->i], sim, philo, forks);
+		philo->i++;
 	}
-	i = 0;
-	while (i < philo->nbof_philos)
+	philo->i = 0;
+	while (philo->i < philo->nbof_philos)
 	{
-		pthread_create(&philothread[i], NULL, &life, &pstate[i]);
-		i++;
+		pthread_create(&philothread[philo->i], NULL, &life, &pstate[philo->i]);
+		philo->i++;
 	}
-	usleep (8000000);
-	i = 0;
-	while (i < philo->nbof_philos)
+	while (!sim->stop)
 	{
-		pthread_join(philothread[i], NULL);
-		pthread_mutex_destroy(&forks[i]);
-		i++;
+		philo->i = 0;
+		while (philo->i < philo->nbof_philos)
+		{
+			pthread_mutex_lock(&sim->stop_lock);
+			if (get_time_ms(&pstate[philo->i])
+				- pstate[philo->i].last_meal >= pstate[philo->i].t2die)
+			{
+				print_status(&pstate[philo->i], "has died");
+				sim->stop = 1;
+				pthread_mutex_unlock(&sim->stop_lock);
+				break ;
+			}
+			pthread_mutex_unlock(&sim->stop_lock);
+			philo->i++;
+		}
+		usleep(500);
+	}
+	// usleep(800000);
+	philo->i = 0;
+	while (philo->i < philo->nbof_philos)
+	{
+		pthread_join(philothread[philo->i], NULL);
+		pthread_mutex_destroy(&forks[philo->i]);
+		philo->i++;
 	}
 }
 
-// create thread
 // monitor
 // prio on who die first
 
-/*
-half can eat at the same time
-fork have a mutex ?
-
-*/
+// death annoncement 10ms before
