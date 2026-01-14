@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 16:33:01 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:14:00 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:29:49 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,6 @@ long	get_time_ms(void)
 		return (0);
 	else
 		return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-}
-
-void	print_status(t_philo *p, char *msg)
-{
-	pthread_mutex_lock(&p->sim->print_lock);
-	pthread_mutex_lock(&p->sim->stop_lock);
-	if (!p->sim->stop)
-	{
-		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id, msg);
-	}
-	pthread_mutex_unlock(&p->sim->stop_lock);
-	pthread_mutex_unlock(&p->sim->print_lock);
 }
 
 int	psleep(long time_in_ms, t_philo *p)

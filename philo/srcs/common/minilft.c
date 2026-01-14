@@ -6,11 +6,15 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 18:29:59 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:05:11 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/14 17:03:01 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#if defined(MODE_BONUS)
+# include "philo_bonus.h"
+#else
+# include "philo.h"
+#endif
 
 int	nb_len(long nb)
 {
@@ -44,9 +48,8 @@ size_t	ft_strlen(char *str)
 	return (i);
 }
 
-char	*ft_strjoinall(char **av)
+char	*ft_strjoinall(char **av, char	*res)
 {
-	char	*res;
 	int		i;
 	int		j;
 	int		len;

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 11:50:37 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:27:09 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:29:53 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,4 +82,16 @@ void	wait_sim_stop(t_sim *sim)
 		pthread_mutex_unlock(&sim->stop_lock);
 		usleep(1000);
 	}
+}
+
+void	print_status(t_philo *p, char *msg)
+{
+	pthread_mutex_lock(&p->sim->print_lock);
+	pthread_mutex_lock(&p->sim->stop_lock);
+	if (!p->sim->stop)
+	{
+		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id, msg);
+	}
+	pthread_mutex_unlock(&p->sim->stop_lock);
+	pthread_mutex_unlock(&p->sim->print_lock);
 }

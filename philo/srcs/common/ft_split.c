@@ -6,11 +6,15 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 18:34:16 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 18:34:36 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/14 12:54:15 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#if defined(MODE_BONUS)
+# include "philo_bonus.h"
+#else
+# include "philo.h"
+#endif
 
 void	free_words(char **words, int i)
 {

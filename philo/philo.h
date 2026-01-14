@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:51:00 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:00:54 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/14 17:03:21 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ typedef struct s_philo
 
 	pthread_mutex_t		*left_fork;
 	pthread_mutex_t		*right_fork;
-	pthread_mutex_t		state_lock;
 	t_sim				*sim;
 }						t_philo;
 
@@ -107,7 +106,7 @@ long					get_time_ms(void);
 void					print_status(t_philo *p, char *msg);
 int						psleep(long time_in_ms, t_philo *p);
 char					**ft_split(char const *s, char c);
-char					*ft_strjoinall(char **av);
+char					*ft_strjoinall(char **av, char *res);
 
 // routine
 void					born2philo(t_sim *sim);

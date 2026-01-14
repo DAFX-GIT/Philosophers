@@ -6,11 +6,15 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 15:27:33 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:24:53 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/14 17:12:21 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#if defined(MODE_BONUS)
+# include "philo_bonus.h"
+#else
+# include "philo.h"
+#endif
 
 int	check_all_digit(int ac, char **av)
 {
@@ -67,7 +71,7 @@ void	parse(t_sim *sim, t_parse *parsing)
 	av = parsing->arg;
 	if (!check_all_digit(ac, av))
 	{
-		write(2, "Given arguments are not digits\n", 31);
+		write(2, "Given arguments are not (positive) digits\n", 42);
 		freeall(sim, parsing);
 		exit(1);
 	}
@@ -78,7 +82,7 @@ void	parse(t_sim *sim, t_parse *parsing)
 		freeall(sim, parsing);
 		exit(1);
 	}
-	if(sim->nbof_philos > 200)
+	if (sim->nbof_philos > 200)
 	{
 		write(2, "Too many philosophers\n", 22);
 		freeall(sim, parsing);
