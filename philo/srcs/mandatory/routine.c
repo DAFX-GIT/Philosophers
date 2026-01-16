@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 18:02:48 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 18:01:19 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 22:37:15 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,24 +74,11 @@ void	*life(void *arg)
 	unlock_frk_leftover(p);
 	return (NULL);
 }
-
-void	born2philo(t_sim *sim)
+int join(t_sim *sim, int to_join)
 {
-	sim->start_time = get_time_ms();
-	while (sim->i < sim->nbof_philos)
-	{
-		sim->philo[sim->i].start_time = sim->start_time;
-		sim->philo[sim->i].last_meal = sim->start_time;
-		pthread_create(&sim->philothread[sim->i], NULL, &life,
-			&sim->philo[sim->i]);
-		sim->i++;
-	}
-	pthread_create(&sim->monitor[0], NULL, &death, sim);
-	if (sim->musteat)
-		pthread_create(&sim->monitor[1], NULL, &glutony, sim);
-	wait_sim_stop(sim);
+	sim->stop = 1;
 	sim->i = 0;
-	while (sim->i < sim->nbof_philos)
+	while (sim->i < to_join)
 	{
 		pthread_join((sim->philothread[sim->i]), NULL);
 		pthread_mutex_destroy(&sim->forks[sim->i]);
@@ -100,4 +87,26 @@ void	born2philo(t_sim *sim)
 	pthread_join((sim->monitor[0]), NULL);
 	if (sim->musteat)
 		pthread_join((sim->monitor[1]), NULL);
+	return 0;
+}
+int	born2philo_ma(t_sim *sim)
+{
+	sim->start_time = get_time_ms();
+	while (sim->i < sim->nbof_philos)
+	{
+		sim->philo[sim->i].start_time = sim->start_time;
+		sim->philo[sim->i].last_meal = sim->start_time;
+		if (pthread_create(&sim->philothread[sim->i], NULL, &life,
+			&sim->philo[sim->i]))
+				return (1 + join(sim, sim->i));
+		sim->i++;
+	}
+	if (pthread_create(&sim->monitor[0], NULL, &death, sim))
+		return (1 + join(sim, sim->nbof_philos));
+	if (sim->musteat)
+		if (pthread_create(&sim->monitor[1], NULL, &glutony, sim))
+			return (1 + join(sim, sim->nbof_philos));
+	wait_sim_stop(sim);
+	join(sim, sim->nbof_philos);
+	return 0;
 }

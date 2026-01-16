@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:51:00 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 16:50:33 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 22:11:55 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ char					**ft_split(char const *s, char c);
 char					*ft_strjoinall(char **av, char *res);
 
 // routine
-void					born2philo(t_sim *sim);
+int						born2philo_ma(t_sim *sim);
 
 // forks
 void					lock_forks(t_philo *philo);

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:39:32 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 16:47:04 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 22:21:53 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,8 @@ int	main(int ac, char **av)
 		return (1);
 	}
 	ini_sim(sim);
-	born2philo(sim);
+	if(born2philo_ma(sim))
+		write(2, "Thread error\n", 13);
 	freeall(sim);
 	return (0);
 }
