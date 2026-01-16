@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:56:03 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:06:40 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 14:46:22 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,8 @@ void	kill_process(t_sim *sim)
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
+		sem_post(sim->philos_done);
+		usleep(8000);
 		kill(sim->process[i].pid, SIGKILL);
 		i++;
 	}
@@ -95,6 +97,7 @@ void	born2philo(t_sim *sim)
 	}
 	pthread_create(&sim->glutony_monitor, NULL, &glutony, sim);
 	sem_wait(sim->stop_sim);
+	sim->stop = 1;
 	kill_process(sim);
 	ending(sim);
 }

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 18:13:02 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 19:00:20 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/15 15:13:17 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	freeparse(t_parse *parsing)
 		free(parsing->arg);
 }
 
-void	freeall(t_sim *sim, t_parse *parsing)
+void	freeall(t_sim *sim)
 {
 	if (sim->forks)
 		free(sim->forks);
@@ -34,5 +34,4 @@ void	freeall(t_sim *sim, t_parse *parsing)
 		free(sim->philothread);
 	if (sim)
 		free(sim);
-	freeparse(parsing);
 }

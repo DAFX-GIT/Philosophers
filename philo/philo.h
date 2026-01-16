@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:51:00 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:03:21 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 16:50:33 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ typedef struct s_philo
 }					t_philo; */
 
 // parse
-void					parse(t_sim *sim, t_parse *parsing);
+int						parse(t_sim *sim, t_parse *parsing);
 int						nb_len(long nb);
 
 // utils
@@ -132,7 +132,7 @@ int						check_stop(t_philo *p);
 void					check_done(t_philo *p);
 
 // free
-void					freeall(t_sim *sim, t_parse *parsing);
+void					freeall(t_sim *sim);
 void					freeparse(t_parse *parsing);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:57:42 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 16:57:06 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 13:42:37 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ void	ini_sim(t_sim *sim)
 	sim->stop_sim = sem_open("/stop", O_CREAT, 0644, 0);
 	sim->philos_done = sem_open("/done", O_CREAT, 0644, 0);
 	sim->process = malloc(sizeof(t_process) * sim->nbof_philos);
+	if (!sim->process)
+		freeall_exit(sim, 1);
 	sim->i = 0;
 	while (sim->i < sim->nbof_philos)
 	{

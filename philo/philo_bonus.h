@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 19:35:53 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:06:57 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 16:50:38 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,8 @@ typedef struct s_sim
 	int						musteat;
 	t_process				*process;
 
+	int						stop;
+
 	sem_t					*philos_done;
 	sem_t					*stop_sim;
 	sem_t					*forks_pool;
@@ -106,13 +108,14 @@ void						unlock_forks(t_sim *sim, t_process *p);
 void						lock_forks(t_sim *sim, t_process *p);
 
 // parse
-void						parse(t_sim *sim, t_parse *parsing);
+int							parse(t_sim *sim, t_parse *parsing);
 
 // ini
 void						ini_sim(t_sim *sim);
 
 // free
-void						freeall(t_sim *sim, t_parse *parsing);
+// void						freeall(t_sim *sim);
+void						freeall_exit(t_sim *sim, int err);
 void						freeparse(t_parse *parsing);
 void						ending(t_sim *sim);
 

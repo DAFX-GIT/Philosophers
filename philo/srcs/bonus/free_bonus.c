@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 16:12:59 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:06:51 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 14:47:04 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	freeparse(t_parse *parsing)
 		free(parsing->arg);
 }
 
-void	freeall(t_sim *sim, t_parse *parsing)
+/* void	freeall(t_sim *sim)
 {
 	sem_close(sim->forks_pool);
 	sem_close(sim->print_lock);
@@ -38,7 +38,23 @@ void	freeall(t_sim *sim, t_parse *parsing)
 		free(sim->process);
 	if (sim)
 		free(sim);
-	freeparse(parsing);
+	// freeparse(parsing);
+} */
+void	freeall_exit(t_sim *sim, int err)
+{
+	sem_close(sim->forks_pool);
+	sem_close(sim->print_lock);
+	sem_close(sim->stop_sim);
+	sem_close(sim->philos_done);
+	sem_unlink("/forks");
+	sem_unlink("/print");
+	sem_unlink("/stop");
+	sem_unlink("/done");
+	if (sim->process)
+		free(sim->process);
+	if (sim)
+		free(sim);
+	exit(err);
 }
 
 void	ending(t_sim *sim)
@@ -50,7 +66,6 @@ void	ending(t_sim *sim)
 		pthread_mutex_destroy(&sim->process[sim->i].last_meal_lock);
 		sim->i++;
 	}
-	pthread_cancel(sim->glutony_monitor);
 	pthread_join(sim->glutony_monitor, NULL);
 	sem_destroy(sim->forks_pool);
 	sem_destroy(sim->print_lock);

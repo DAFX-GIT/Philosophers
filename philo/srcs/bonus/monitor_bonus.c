@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 15:07:19 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 16:57:14 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 16:54:56 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void	print_status(t_process *p, char *msg)
 	pthread_mutex_lock(&p->last_meal_lock);
 	if (!p->sim_stop)
 	{
-		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->philo_id,
+		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->philo_id + 1,
 			msg);
 	}
 	sem_post(p->sim->print_lock);
@@ -39,7 +39,7 @@ void	*death(void *arg)
 			pthread_mutex_unlock(&p->last_meal_lock);
 			p->sim_stop = 1;
 			printf("%ld %d %s\n", get_time_ms() - p->sim->start_time,
-				p->philo_id, "has died");
+				p->philo_id + 1, "has died");
 			return (sem_post(p->sim->stop_sim), NULL);
 		}
 		sem_post(p->sim->print_lock);
@@ -61,6 +61,8 @@ void	*glutony(void *arg)
 		sem_wait(sim->philos_done);
 		i++;
 	}
+	if (sim->stop)
+		return (NULL);
 	sem_wait(sim->print_lock);
 	sem_post(sim->stop_sim);
 	printf("%ld %s\n", get_time_ms() - sim->start_time,

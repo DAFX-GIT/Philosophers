@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 19:35:16 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:03:44 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/16 13:50:30 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,10 @@ int	main(int ac, char **av)
 	if (!sim)
 		exit(1);
 	memset(sim, 0, sizeof(*sim));
-	parse(sim, &parsing);
+	if (parse(sim, &parsing))
+		freeall_exit(sim, 1);
 	ini_sim(sim);
 	born2philo(sim);
-	freeall(sim, &parsing);
+	freeall_exit(sim, 0);
 	return (0);
 }
