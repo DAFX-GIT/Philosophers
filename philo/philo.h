@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:51:00 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 22:11:55 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:25:58 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ typedef struct s_sim
 
 	int					stop;
 	pthread_mutex_t		stop_lock;
+	pthread_mutex_t		done_lock;
 	pthread_mutex_t		print_lock;
 	pthread_mutex_t		*forks;
 	pthread_t			*philothread;
@@ -128,11 +129,13 @@ void					wait_sim_stop(t_sim *sim);
 
 // checks
 int						check_single(t_philo *p);
-int						check_stop(t_philo *p);
-void					check_done(t_philo *p);
+int						check_stop(t_sim *sim);
+int						check_done(t_philo *p);
+void					set_last_meal(t_philo *p);
 
 // free
 void					freeall(t_sim *sim);
 void					freeparse(t_parse *parsing);
+int						join(t_sim *sim, int to_join);
 
 #endif

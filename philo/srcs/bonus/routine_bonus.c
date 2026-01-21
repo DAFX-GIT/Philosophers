@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:56:03 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 14:46:22 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:29:55 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,36 +45,51 @@ int	to_sleep_and_think(t_process *p)
 	return (0);
 }
 
-void	life(t_process *p)
+void	stagger(t_process *p)
 {
-	p->last_meal = get_time_ms();
-	pthread_create(&p->death_monitor, NULL, &death, p);
-	if (check_single(p))
-		return ;
-	if (p->philo_id % 2 == 1)
-		usleep(8000);
-	while (1)
+	if (p->sim->nbof_philos % 2 != 0)
 	{
-		to_sleep_and_think(p);
-		if (p->sim->nbof_philos % 2 != 0 && p->sim->t2eat * 2
-			- p->sim->t2sleep > 0)
-			psleep((p->sim->t2eat * 2 - p->sim->t2sleep) * 0.5);
-		to_eat(p);
+		if (p->philo_id == 0)
+			;
+		else if (p->philo_id == 1)
+			psleep(p->sim->t2eat * 1.5);
+		else if (p->philo_id == 2)
+			psleep(p->sim->t2eat / 2);
+		else
+		{
+			if (p->philo_id % 2 != 0)
+				psleep(p->sim->t2eat * 2);
+			else
+				psleep(p->sim->t2eat);
+		}
+	}
+	else
+	{
+		if (p->philo_id % 2 != 0)
+			psleep(p->sim->t2eat);
 	}
 }
 
-void	kill_process(t_sim *sim)
+void	life(t_process *p)
 {
-	int	i;
-
-	i = 0;
-	while (i < sim->nbof_philos)
+	print_status(p, "is thinking");
+	p->last_meal = get_time_ms();
+	if (pthread_create(&p->death_monitor, NULL, &death, p))
 	{
-		sem_post(sim->philos_done);
-		usleep(8000);
-		kill(sim->process[i].pid, SIGKILL);
-		i++;
+		p->sim->crash = 1;
+		sem_post(p->sim->stop_sim);
+		exit(0);
 	}
+	if (check_single(p))
+		exit(0);
+	stagger(p);
+	while (1)
+	{
+		to_eat(p);
+		to_sleep_and_think(p);
+		usleep(500);
+	}
+	exit(0);
 }
 
 void	born2philo(t_sim *sim)
@@ -86,18 +101,18 @@ void	born2philo(t_sim *sim)
 	while (sim->i < sim->nbof_philos)
 	{
 		id = fork();
+		if (id < 0)
+			handle_crash(sim, sim->i);
 		if (id == 0)
-		{
 			life(&sim->process[sim->i]);
-			exit(0);
-		}
 		else
 			sim->process[sim->i].pid = id;
 		sim->i++;
 	}
-	pthread_create(&sim->glutony_monitor, NULL, &glutony, sim);
+	if (pthread_create(&sim->glutony_monitor, NULL, &glutony, sim))
+		handle_crash(sim, sim->nbof_philos);
 	sem_wait(sim->stop_sim);
 	sim->stop = 1;
-	kill_process(sim);
-	ending(sim);
+	kill_process(sim, sim->nbof_philos);
+	ending(sim, sim->nbof_philos);
 }

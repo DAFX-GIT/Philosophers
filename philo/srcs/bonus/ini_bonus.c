@@ -6,13 +6,13 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:57:42 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 13:42:37 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/19 16:46:29 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_bonus.h"
 
-void	ini_process(t_sim *sim, t_process *p) //,forks ?)
+void	ini_process(t_sim *sim, t_process *p)
 {
 	p->philo_id = sim->i;
 	p->forks = 0;
@@ -21,7 +21,8 @@ void	ini_process(t_sim *sim, t_process *p) //,forks ?)
 	p->sim = sim;
 	p->sim_stop = 0;
 	p->done = 0;
-	pthread_mutex_init(&p->last_meal_lock, NULL);
+	if (pthread_mutex_init(&p->last_meal_lock, NULL))
+		freeall_exit(sim, 1);
 }
 
 void	ini_sim(t_sim *sim)
@@ -34,6 +35,9 @@ void	ini_sim(t_sim *sim)
 	sim->print_lock = sem_open("/print", O_CREAT, 0644, 1);
 	sim->stop_sim = sem_open("/stop", O_CREAT, 0644, 0);
 	sim->philos_done = sem_open("/done", O_CREAT, 0644, 0);
+	if (sim->forks_pool == SEM_FAILED || sim->print_lock == SEM_FAILED
+		|| sim->stop_sim == SEM_FAILED || sim->philos_done == SEM_FAILED)
+		freeall_exit(sim, 1);
 	sim->process = malloc(sizeof(t_process) * sim->nbof_philos);
 	if (!sim->process)
 		freeall_exit(sim, 1);
@@ -44,4 +48,5 @@ void	ini_sim(t_sim *sim)
 		sim->i++;
 	}
 	sim->i = 0;
+	sim->crash = 0;
 }

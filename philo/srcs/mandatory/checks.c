@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 17:42:57 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 15:48:08 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/19 16:46:06 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,20 +23,32 @@ int	check_single(t_philo *p)
 	return (0);
 }
 
-int	check_stop(t_philo *p)
+int	check_stop(t_sim *sim)
 {
-	pthread_mutex_lock(&p->sim->stop_lock);
-	if (p->sim->stop)
+	pthread_mutex_lock(&sim->stop_lock);
+	if (sim->stop)
 	{
-		pthread_mutex_unlock(&p->sim->stop_lock);
+		pthread_mutex_unlock(&sim->stop_lock);
 		return (1);
 	}
-	pthread_mutex_unlock(&p->sim->stop_lock);
+	pthread_mutex_unlock(&sim->stop_lock);
 	return (0);
 }
 
-void	check_done(t_philo *p)
+int	check_done(t_philo *p)
 {
+	pthread_mutex_lock(&p->sim->done_lock);
+	if (p->done)
+	{
+		pthread_mutex_unlock(&p->sim->done_lock);
+		return (1);
+	}
 	if (!p->done && p->sim->musteat > 0 && p->eaten >= p->sim->musteat)
+	{
 		p->done = 1;
+		pthread_mutex_unlock(&p->sim->done_lock);
+		return (1);
+	}
+	pthread_mutex_unlock(&p->sim->done_lock);
+	return (0);
 }

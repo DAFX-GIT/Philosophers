@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 19:35:53 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 16:50:38 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:30:23 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ typedef struct s_sim
 	t_process				*process;
 
 	int						stop;
+	int						crash;
 
 	sem_t					*philos_done;
 	sem_t					*stop_sim;
@@ -89,6 +90,7 @@ typedef struct s_sim
 }							t_sim;
 
 void						born2philo(t_sim *sim);
+void						kill_process(t_sim *sim, int to_kill);
 
 // monitor
 void						*death(void *arg);
@@ -98,6 +100,7 @@ void						print_status(t_process *p, char *msg);
 // utils
 int							psleep(long time_in_ms);
 long						get_time_ms(void);
+void						kill_process(t_sim *sim, int to_kill);
 
 // checks
 void						check_done(t_process *p);
@@ -117,7 +120,8 @@ void						ini_sim(t_sim *sim);
 // void						freeall(t_sim *sim);
 void						freeall_exit(t_sim *sim, int err);
 void						freeparse(t_parse *parsing);
-void						ending(t_sim *sim);
+void						ending(t_sim *sim, int to_end);
+void						handle_crash(t_sim *sim, int to_kill);
 
 // minilft
 char						*ft_strjoinall(char **av, char *res);

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 11:50:37 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 16:54:41 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:28:54 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	*death(void *arg)
 	t_sim	*sim;
 
 	sim = (t_sim *)arg;
-	while (!sim->stop)
+	while (!check_stop(sim))
 	{
 		sim->i = 0;
 		while (sim->i < sim->nbof_philos)
@@ -28,7 +28,7 @@ void	*death(void *arg)
 			{
 				sim->stop = 1;
 				printf("%ld %d %s\n", get_time_ms() - sim->start_time,
-					sim->philo[sim->i].id + 1, "has died");
+					sim->philo[sim->i].id + 1, "died");
 				return (pthread_mutex_unlock(&sim->print_lock),
 					pthread_mutex_unlock(&sim->stop_lock), NULL);
 			}
@@ -36,7 +36,7 @@ void	*death(void *arg)
 			pthread_mutex_unlock(&sim->stop_lock);
 			sim->i++;
 		}
-		usleep(1000);
+		usleep(400);
 	}
 	return (NULL);
 }
@@ -50,11 +50,11 @@ void	*glutony(void *arg)
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
-		if (check_stop(&sim->philo[0]))
+		if (check_stop(sim))
 			return (NULL);
-		if (sim->philo[i].done == 0)
+		if (check_done(&sim->philo[i]) == 0)
 		{
-			usleep(1000);
+			usleep(3500);
 			continue ;
 		}
 		i++;
@@ -90,7 +90,8 @@ void	print_status(t_philo *p, char *msg)
 	pthread_mutex_lock(&p->sim->stop_lock);
 	if (!p->sim->stop)
 	{
-		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id + 1, msg);
+		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id + 1,
+			msg);
 	}
 	pthread_mutex_unlock(&p->sim->stop_lock);
 	pthread_mutex_unlock(&p->sim->print_lock);

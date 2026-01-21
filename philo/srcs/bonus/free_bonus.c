@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 16:12:59 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 14:47:04 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/19 13:23:20 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,22 +24,6 @@ void	freeparse(t_parse *parsing)
 		free(parsing->arg);
 }
 
-/* void	freeall(t_sim *sim)
-{
-	sem_close(sim->forks_pool);
-	sem_close(sim->print_lock);
-	sem_close(sim->stop_sim);
-	sem_close(sim->philos_done);
-	sem_unlink("/forks");
-	sem_unlink("/print");
-	sem_unlink("/stop");
-	sem_unlink("/done");
-	if (sim->process)
-		free(sim->process);
-	if (sim)
-		free(sim);
-	// freeparse(parsing);
-} */
 void	freeall_exit(t_sim *sim, int err)
 {
 	sem_close(sim->forks_pool);
@@ -57,10 +41,10 @@ void	freeall_exit(t_sim *sim, int err)
 	exit(err);
 }
 
-void	ending(t_sim *sim)
+void	ending(t_sim *sim, int to_end)
 {
 	sim->i = 0;
-	while (sim->i < sim->nbof_philos)
+	while (sim->i < to_end)
 	{
 		waitpid(-1, NULL, 0);
 		pthread_mutex_destroy(&sim->process[sim->i].last_meal_lock);
@@ -71,4 +55,12 @@ void	ending(t_sim *sim)
 	sem_destroy(sim->print_lock);
 	sem_destroy(sim->stop_sim);
 	sem_destroy(sim->philos_done);
+}
+
+void	handle_crash(t_sim *sim, int to_kill)
+{
+	kill_process(sim, to_kill);
+	ending(sim, to_kill);
+	write(2, "Not enough memory to run.\n", 26);
+	freeall_exit(sim, 2);
 }

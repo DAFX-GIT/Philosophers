@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 15:27:33 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/16 16:58:13 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:28:28 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,9 +98,10 @@ int	parse(t_sim *sim, t_parse *parsing)
 	if (check_musteat(parsing))
 		return (1);
 	freeparse(parsing);
-	if (sim->nbof_philos > 200)
-		return (write(2, "Too many philosophers\n", 22) - 21);
 	if (sim->nbof_philos == 0)
 		return (write(2, "No philosophers\n", 16) - 15);
 	return (0);
 }
+
+/* if (sim->nbof_philos > 200)
+		return (write(2, "Too many philosophers\n", 22) - 21); */

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 11:53:38 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/12 18:18:10 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/19 16:36:18 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ void	ini_sim(t_sim *sim)
 	sim->philothread = malloc(sizeof(pthread_t) * sim->nbof_philos);
 	pthread_mutex_init(&sim->stop_lock, NULL);
 	pthread_mutex_init(&sim->print_lock, NULL);
+	pthread_mutex_init(&sim->done_lock, NULL);
 	sim->i = 0;
 	while (sim->i < sim->nbof_philos)
 	{

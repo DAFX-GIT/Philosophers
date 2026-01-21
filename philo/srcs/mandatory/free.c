@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 18:13:02 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/15 15:13:17 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:26:27 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,4 +34,23 @@ void	freeall(t_sim *sim)
 		free(sim->philothread);
 	if (sim)
 		free(sim);
+}
+
+int	join(t_sim *sim, int to_join)
+{
+	int	i;
+
+	i = 0;
+	pthread_mutex_lock(&sim->stop_lock);
+	sim->stop = 1;
+	pthread_mutex_unlock(&sim->stop_lock);
+	while (i < to_join)
+	{
+		pthread_join((sim->philothread[i]), NULL);
+		i++;
+	}
+	pthread_join((sim->monitor[0]), NULL);
+	if (sim->musteat)
+		pthread_join((sim->monitor[1]), NULL);
+	return (0);
 }

@@ -6,7 +6,7 @@
 #    By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/05 13:39:36 by adastugu          #+#    #+#              #
-#    Updated: 2026/01/14 14:23:26 by adastugu         ###   ########.fr        #
+#    Updated: 2026/01/21 14:21:01 by adastugu         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ NAME_BONUS = philo_bonus
 RM = rm -rf
 
 CC = cc
-CFLAGS = -Wall -Wextra  -g -pthread -Werror
+CFLAGS = -Wall -Wextra  -g -pthread -Werror#-O3  
 
 INC_DIR = .
 

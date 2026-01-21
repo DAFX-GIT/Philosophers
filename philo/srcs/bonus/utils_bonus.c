@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 16:04:49 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 16:58:37 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/21 14:30:08 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,4 +32,19 @@ int	psleep(long time_to_wait)
 		usleep(500);
 	}
 	return (0);
+}
+
+void	kill_process(t_sim *sim, int to_kill)
+{
+	int	i;
+
+	i = 0;
+	sim->stop = 1;
+	while (i < to_kill)
+	{
+		sem_post(sim->philos_done);
+		usleep(8000);
+		kill(sim->process[i].pid, SIGKILL);
+		i++;
+	}
 }
