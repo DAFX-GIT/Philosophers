@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:57:42 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/19 16:46:29 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 18:09:31 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,14 @@ void	ini_process(t_sim *sim, t_process *p)
 	p->sim = sim;
 	p->sim_stop = 0;
 	p->done = 0;
-	if (pthread_mutex_init(&p->last_meal_lock, NULL))
+	p->var = ft_itoa(p->philo_id + 100);
+	if (!p->var)
+		freeall_exit(sim, 1);
+	sem_unlink(p->var);
+	p->last_meal_lock = sem_open(p->var, O_CREAT, 0644, 1);
+	sem_unlink(p->var);
+	free (p->var);
+	if (p->last_meal_lock == SEM_FAILED)
 		freeall_exit(sim, 1);
 }
 

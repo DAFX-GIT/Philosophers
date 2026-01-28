@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 16:12:59 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/19 13:23:20 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 18:17:51 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,14 +47,14 @@ void	ending(t_sim *sim, int to_end)
 	while (sim->i < to_end)
 	{
 		waitpid(-1, NULL, 0);
-		pthread_mutex_destroy(&sim->process[sim->i].last_meal_lock);
+		sem_close(sim->process[sim->i].last_meal_lock);
 		sim->i++;
 	}
 	pthread_join(sim->glutony_monitor, NULL);
-	sem_destroy(sim->forks_pool);
-	sem_destroy(sim->print_lock);
-	sem_destroy(sim->stop_sim);
-	sem_destroy(sim->philos_done);
+	/* sem_close(sim->forks_pool);
+	sem_close(sim->print_lock);
+	sem_close(sim->stop_sim);
+	sem_close(sim->philos_done); */
 }
 
 void	handle_crash(t_sim *sim, int to_kill)

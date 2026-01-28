@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 19:35:53 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:30:23 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 17:56:30 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,8 @@ typedef struct s_process
 	int						state;
 	int						done;
 
-	pthread_mutex_t			last_meal_lock;
+	char					*var;
+	sem_t					*last_meal_lock;
 	long					last_meal;
 
 	long					last_action;
@@ -128,5 +129,7 @@ char						*ft_strjoinall(char **av, char *res);
 size_t						ft_strlen(char *str);
 int							nb_len(long nb);
 char						**ft_split(char const *s, char c);
+char						*ft_itoa(int n);
+int							ft_atoi(const char *str);
 
 #endif

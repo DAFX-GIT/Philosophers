@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:39:32 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:27:02 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/25 12:23:31 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,12 @@ int	pre_parse(t_parse *parsing, int ac, char **av)
 	else
 		str = av[1];
 	if (!str)
-		return (1);
+		return (write(2, "Memory error\n", 13) - 12);
 	parsing->arg = ft_split(str, ' ');
 	if (!parsing->arg)
 	{
 		free(str);
-		return (1);
+		return (write(2, "Memory error\n", 13) - 12);
 	}
 	if (ac > 2)
 		free(str);
@@ -68,14 +68,15 @@ int	main(int ac, char **av)
 		return (1);
 	sim = malloc(sizeof(t_sim));
 	if (!sim)
-		return (1);
+		return (write(2, "Memory error\n", 13) - 12);
 	memset(sim, 0, sizeof(*sim));
 	if (parse(sim, &parsing))
 	{
 		freeall(sim);
 		return (1);
 	}
-	ini_sim(sim);
+	if (ini_sim(sim))
+		return (1);
 	usleep(2000);
 	if (born2philo_ma(sim))
 		write(2, "Thread error\n", 13);

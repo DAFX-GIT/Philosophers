@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/12 18:29:59 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/14 17:03:01 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 17:57:05 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,4 +75,58 @@ char	*ft_strjoinall(char **av, char	*res)
 	}
 	res[len] = '\0';
 	return (res);
+}
+
+int	ft_atoi(const char *str)
+{
+	int	i;
+	int	sign;
+	int	result;
+
+	i = 0;
+	sign = 1;
+	result = 0;
+	while (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13))
+		i++;
+	if (str[i] == '-' || str[i] == '+')
+	{
+		if (str[i] == '-')
+			sign = -1;
+		i++;
+	}
+	while (str[i] >= '0' && str[i] <= '9')
+	{
+		result = result * 10 + (str[i] - '0');
+		i++;
+	}
+	return (result * sign);
+}
+
+char	*ft_itoa(int n)
+{
+	char	*str;
+	long	nb;
+	int		len;
+	int		sign;
+
+	nb = n;
+	sign = 0;
+	if (nb < 0)
+	{
+		sign = 1;
+		nb = -nb;
+	}
+	len = nb_len(nb) + sign;
+	str = (char *)malloc(sizeof(char) * (len + 1));
+	if (!str)
+		return (NULL);
+	str[len] = '\0';
+	while (len-- > sign)
+	{
+		str[len] = (nb % 10) + '0';
+		nb /= 10;
+	}
+	if (sign)
+		str[0] = '-';
+	return (str);
 }

@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 15:27:33 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:28:28 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 17:37:47 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,12 +52,12 @@ int	check_all_digit(int ac, char **av)
 
 void	get_value(t_sim *sim, int ac, char **av)
 {
-	sim->nbof_philos = atoi(av[1 - 1]);
-	sim->t2die = atoi(av[2 - 1]);
-	sim->t2eat = atoi(av[3 - 1]);
-	sim->t2sleep = atoi(av[4 - 1]);
+	sim->nbof_philos = ft_atoi(av[1 - 1]);
+	sim->t2die = ft_atoi(av[2 - 1]);
+	sim->t2eat = ft_atoi(av[3 - 1]);
+	sim->t2sleep = ft_atoi(av[4 - 1]);
 	if (ac > 5 - 1)
-		sim->musteat = atoi(av[5 - 1]);
+		sim->musteat = ft_atoi(av[5 - 1]);
 }
 
 int	check_len(t_sim *sim, int ac, char **av)

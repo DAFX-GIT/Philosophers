@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/13 10:56:03 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:29:55 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 17:55:07 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@ void	to_eat(t_process *p)
 	if (p->state == THINKING)
 	{
 		lock_forks(p->sim, p);
-		pthread_mutex_lock(&p->last_meal_lock);
+		sem_wait(p->last_meal_lock);
 		p->last_meal = get_time_ms();
-		pthread_mutex_unlock(&p->last_meal_lock);
+		sem_post(p->last_meal_lock);
 		print_status(p, "is eating");
 		p->eaten++;
 		p->state = EATING;

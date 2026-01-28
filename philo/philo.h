@@ -6,7 +6,7 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 13:51:00 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:25:58 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/01/26 17:56:57 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void					unlock_frk_leftover(t_philo *p);
 // ini
 void					ini_state(t_sim *sim, t_philo *philo,
 							pthread_mutex_t *forks);
-void					ini_sim(t_sim *sim);
+int						ini_sim(t_sim *sim);
 
 // monitor
 void					*death(void *arg);
@@ -137,5 +137,7 @@ void					set_last_meal(t_philo *p);
 void					freeall(t_sim *sim);
 void					freeparse(t_parse *parsing);
 int						join(t_sim *sim, int to_join);
+
+int						ft_atoi(const char *str);
 
 #endif
