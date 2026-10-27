@@ -1,1 +1,4 @@
-/objs
+philo/objs*/
+philo/philo
+philo/philo_bonus
+philo/out
