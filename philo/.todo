@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<todo version="0.1.20">
+    <note priority="veryhigh" time="1768064277" done="1768235645">
+        branch and clean up, add a musteaten thread monitor
+        <comment>
+            ouia
+        </comment>
+    </note>
+    <note priority="veryhigh" time="1768225068" done="1768235879">
+        single philo not closing properly
+        <comment>
+            done
+        </comment>
+    </note>
+    <note priority="veryhigh" time="1768236427" done="1768237342">
+        VLA / pthread malloc ?
+        <comment>
+            done
+        </comment>
+    </note>
+    <note priority="veryhigh" time="1768237336">
+        malloc proc and free
+    </note>
+    <note priority="high" time="1768389346">
+        maybe mutex for stop sim ?
+    </note>
+</todo>

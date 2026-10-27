@@ -12,107 +12,85 @@
 
 #include "philo_bonus.h"
 
-void	to_eat(t_process *p)
+static void	to_eat(t_process *p)
 {
-	if (p->state == THINKING)
-	{
-		lock_forks(p->sim, p);
-		sem_wait(p->last_meal_lock);
-		p->last_meal = get_time_ms();
-		sem_post(p->last_meal_lock);
-		print_status(p, "is eating");
-		p->eaten++;
-		p->state = EATING;
-	}
+	if (p->state != THINKING)
+		return ;
+	lock_forks(p);
+	sem_wait(p->last_meal_lock);
+	p->last_meal = get_time_ms();
+	sem_post(p->last_meal_lock);
+	print_status(p, "is eating");
+	p->eaten++;
+	p->state = EATING;
 }
 
-int	to_sleep_and_think(t_process *p)
+/// @brief Moves EATING -> SLEEPING -> THINKING once enough time has passed.
+/// Called on every loop tick, so each transition happens as soon as it's due.
+static void	to_sleep_and_think(t_process *p)
 {
 	if (p->state == EATING && get_time_ms() - p->last_meal >= p->sim->t2eat)
 	{
-		unlock_forks(p->sim, p);
+		unlock_forks(p);
 		p->state = SLEEPING;
 		p->last_action = get_time_ms();
 		print_status(p, "is sleeping");
 		check_done(p);
 	}
-	if (p->state == SLEEPING && get_time_ms()
-		- p->last_action >= p->sim->t2sleep)
+	if (p->state == SLEEPING
+		&& get_time_ms() - p->last_action >= p->sim->t2sleep)
 	{
 		p->state = THINKING;
 		print_status(p, "is thinking");
 	}
-	return (0);
 }
 
-void	stagger(t_process *p)
-{
-	if (p->sim->nbof_philos % 2 != 0)
-	{
-		if (p->philo_id == 0)
-			;
-		else if (p->philo_id == 1)
-			psleep(p->sim->t2eat * 1.5);
-		else if (p->philo_id == 2)
-			psleep(p->sim->t2eat / 2);
-		else
-		{
-			if (p->philo_id % 2 != 0)
-				psleep(p->sim->t2eat * 2);
-			else
-				psleep(p->sim->t2eat);
-		}
-	}
-	else
-	{
-		if (p->philo_id % 2 != 0)
-			psleep(p->sim->t2eat);
-	}
-}
-
-void	life(t_process *p)
+/// @brief Body of a philosopher process. Never returns: the parent kills
+/// the process when the simulation ends.
+static void	life(t_process *p)
 {
 	print_status(p, "is thinking");
 	p->last_meal = get_time_ms();
 	if (pthread_create(&p->death_monitor, NULL, &death, p))
 	{
-		p->sim->crash = 1;
+		print_error("Thread error\n");
 		sem_post(p->sim->stop_sim);
-		exit(0);
+		exit(1);
 	}
-	if (check_single(p))
-		exit(0);
-	stagger(p);
+	psleep(start_delay(p->id, p->sim->nbof_philos, p->sim->t2eat));
 	while (1)
 	{
 		to_eat(p);
 		to_sleep_and_think(p);
 		usleep(500);
 	}
-	exit(0);
 }
 
-void	born2philo(t_sim *sim)
+/// @brief Forks one process per philosopher, starts the glutony monitor,
+/// then sleeps until someone posts stop_sim (a death, or everyone ate).
+void	start_simulation(t_sim *sim)
 {
-	int	id;
+	int	i;
 
-	sim->i = 0;
 	sim->start_time = get_time_ms();
-	while (sim->i < sim->nbof_philos)
+	i = 0;
+	while (i < sim->nbof_philos)
 	{
-		id = fork();
-		if (id < 0)
-			handle_crash(sim, sim->i);
-		if (id == 0)
-			life(&sim->process[sim->i]);
-		else
-			sim->process[sim->i].pid = id;
-		sim->i++;
+		sim->process[i].pid = fork();
+		if (sim->process[i].pid < 0)
+		{
+			end_simulation(sim, i, 0);
+			freeall_exit(sim, print_error("Fork error\n"));
+		}
+		if (sim->process[i].pid == 0)
+			life(&sim->process[i]);
+		i++;
 	}
 	if (pthread_create(&sim->glutony_monitor, NULL, &glutony, sim))
-		handle_crash(sim, sim->nbof_philos);
+	{
+		end_simulation(sim, i, 0);
+		freeall_exit(sim, print_error("Thread error\n"));
+	}
 	sem_wait(sim->stop_sim);
-	sim->stop = 1;
-	kill_process(sim, sim->nbof_philos);
-	ending(sim, sim->nbof_philos);
+	end_simulation(sim, i, 1);
 }

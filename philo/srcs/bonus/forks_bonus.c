@@ -12,20 +12,23 @@
 
 #include "philo_bonus.h"
 
-void	lock_forks(t_sim *sim, t_process *p)
+/// @brief Forks are a pool (a counting semaphore), not individual objects.
+/// take_forks makes "grab two forks" one step: without it, every
+/// philosopher could hold one fork and wait forever for a second one.
+/// With a single philosopher, the second sem_wait never returns, which is
+/// exactly what should happen: they hold one fork and starve.
+void	lock_forks(t_process *p)
 {
-	sem_wait(sim->forks_pool);
+	sem_wait(p->sim->take_forks);
+	sem_wait(p->sim->forks_pool);
 	print_status(p, "has taken a fork");
-	p->forks++;
-	sem_wait(sim->forks_pool);
+	sem_wait(p->sim->forks_pool);
 	print_status(p, "has taken a fork");
-	p->forks++;
+	sem_post(p->sim->take_forks);
 }
 
-void	unlock_forks(t_sim *sim, t_process *p)
+void	unlock_forks(t_process *p)
 {
-	sem_post(sim->forks_pool);
-	sem_post(sim->forks_pool);
-	p->forks--;
-	p->forks--;
+	sem_post(p->sim->forks_pool);
+	sem_post(p->sim->forks_pool);
 }

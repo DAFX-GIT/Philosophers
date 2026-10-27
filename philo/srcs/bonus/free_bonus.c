@@ -12,55 +12,50 @@
 
 #include "philo_bonus.h"
 
-void	freeparse(t_parse *parsing)
+static void	close_sem(sem_t *sem)
+{
+	if (sem && sem != SEM_FAILED)
+		sem_close(sem);
+}
+
+/// @brief Kills and reaps the first `philos` children. If the glutony
+/// monitor was started, wakes it wherever it is blocked and joins it:
+/// philos_done in case nobody finished eating, print_lock in case a dead
+/// philosopher kept it. It then sees `stop` and returns without printing.
+void	end_simulation(t_sim *sim, int philos, int has_glutony)
+{
+	int	i;
+
+	sim->stop = 1;
+	i = 0;
+	while (i < philos)
+		kill(sim->process[i++].pid, SIGKILL);
+	i = 0;
+	while (i < philos)
+		waitpid(sim->process[i++].pid, NULL, 0);
+	if (!has_glutony)
+		return ;
+	i = 0;
+	while (i++ < sim->nbof_philos)
+		sem_post(sim->philos_done);
+	sem_post(sim->print_lock);
+	pthread_join(sim->glutony_monitor, NULL);
+}
+
+void	freeall_exit(t_sim *sim, int status)
 {
 	int	i;
 
 	i = 0;
-	if (parsing->arg)
-		while (parsing->arg[i])
-			free(parsing->arg[i++]);
-	if (parsing->arg)
-		free(parsing->arg);
-}
-
-void	freeall_exit(t_sim *sim, int err)
-{
-	sem_close(sim->forks_pool);
-	sem_close(sim->print_lock);
-	sem_close(sim->stop_sim);
-	sem_close(sim->philos_done);
-	sem_unlink("/forks");
-	sem_unlink("/print");
-	sem_unlink("/stop");
-	sem_unlink("/done");
-	if (sim->process)
-		free(sim->process);
-	if (sim)
-		free(sim);
-	exit(err);
-}
-
-void	ending(t_sim *sim, int to_end)
-{
-	sim->i = 0;
-	while (sim->i < to_end)
-	{
-		waitpid(-1, NULL, 0);
-		sem_close(sim->process[sim->i].last_meal_lock);
-		sim->i++;
-	}
-	pthread_join(sim->glutony_monitor, NULL);
-	/* sem_close(sim->forks_pool);
-	sem_close(sim->print_lock);
-	sem_close(sim->stop_sim);
-	sem_close(sim->philos_done); */
-}
-
-void	handle_crash(t_sim *sim, int to_kill)
-{
-	kill_process(sim, to_kill);
-	ending(sim, to_kill);
-	write(2, "Not enough memory to run.\n", 26);
-	freeall_exit(sim, 2);
+	while (sim->process && i < sim->nbof_philos)
+		close_sem(sim->process[i++].last_meal_lock);
+	close_sem(sim->forks_pool);
+	close_sem(sim->take_forks);
+	close_sem(sim->print_lock);
+	close_sem(sim->stop_sim);
+	close_sem(sim->philos_done);
+	unlink_sems();
+	free(sim->process);
+	free(sim);
+	exit(status);
 }

@@ -12,19 +12,7 @@
 
 #include "philo_bonus.h"
 
-int	check_single(t_process *p)
-{
-	if (p->sim->nbof_philos == 1)
-	{
-		print_status(p, "has taken a fork");
-		while (1)
-			;
-		psleep(p->sim->t2die);
-		return (1);
-	}
-	return (0);
-}
-
+/// @brief Signals the parent (once) that this philosopher ate enough.
 void	check_done(t_process *p)
 {
 	if (!p->done && p->sim->musteat > 0 && p->eaten >= p->sim->musteat)

@@ -6,7 +6,7 @@
 #    By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/05 13:39:36 by adastugu          #+#    #+#              #
-#    Updated: 2026/01/21 14:21:01 by adastugu         ###   ########.fr        #
+#    Updated: 2026/06/05 16:25:44 by adastugu         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ NAME_BONUS = philo_bonus
 RM = rm -rf
 
 CC = cc
-CFLAGS = -Wall -Wextra  -g -pthread -Werror#-O3  
+CFLAGS = -Wall -Wextra -Werror -pthread -O3
 
 INC_DIR = .
 
@@ -25,7 +25,7 @@ COMMON_DIR = srcs/common
 BONUS_DIR = srcs/bonus
 
 MANDATORY_SRCS = main.c routine.c forks.c ini.c monitor.c checks.c free.c utils.c
-COMMON_SRCS = parse.c minilft.c ft_split.c
+COMMON_SRCS = parse.c args.c start_delay.c minilft.c ft_split.c
 BONUS_SRCS = main_bonus.c routine_bonus.c monitor_bonus.c ini_bonus.c forks_bonus.c checks_bonus.c free_bonus.c utils_bonus.c
 
 OBJS_DIR = objs
@@ -56,6 +56,9 @@ $(OBJS_BONUS_DIR)/%.o: $(BONUS_DIR)/%.c | $(OBJS_BONUS_DIR)
 
 $(OBJS_BONUS_DIR)/%.o: $(COMMON_DIR)/%.c | $(OBJS_BONUS_DIR)
 	$(CC) $(CFLAGS) -D MODE_BONUS -c $< -o $@ -I$(INC_DIR)
+
+$(OBJS): philo.h
+$(OBJS_BO): philo_bonus.h
 
 $(OBJS_DIR):
 	@mkdir -p $(OBJS_DIR)

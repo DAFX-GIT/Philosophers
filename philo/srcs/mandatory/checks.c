@@ -12,43 +12,54 @@
 
 #include "philo.h"
 
+/// @brief With a single fork, the only philosopher can never eat:
+/// take the fork, wait to die, and let the death monitor report it.
 int	check_single(t_philo *p)
 {
-	if (p->sim->nbof_philos == 1)
-	{
-		print_status(p, "has taken a fork");
-		psleep(p->sim->t2die, p);
-		return (1);
-	}
-	return (0);
+	if (p->sim->nbof_philos != 1)
+		return (0);
+	print_status(p, "has taken a fork");
+	psleep(p->sim->t2die, p);
+	return (1);
 }
 
 int	check_stop(t_sim *sim)
 {
+	int	stop;
+
 	pthread_mutex_lock(&sim->stop_lock);
-	if (sim->stop)
-	{
-		pthread_mutex_unlock(&sim->stop_lock);
-		return (1);
-	}
+	stop = sim->stop;
 	pthread_mutex_unlock(&sim->stop_lock);
-	return (0);
+	return (stop);
 }
 
 int	check_done(t_philo *p)
 {
+	int	done;
+
 	pthread_mutex_lock(&p->sim->done_lock);
-	if (p->done)
-	{
-		pthread_mutex_unlock(&p->sim->done_lock);
-		return (1);
-	}
 	if (!p->done && p->sim->musteat > 0 && p->eaten >= p->sim->musteat)
-	{
 		p->done = 1;
-		pthread_mutex_unlock(&p->sim->done_lock);
-		return (1);
-	}
+	done = p->done;
 	pthread_mutex_unlock(&p->sim->done_lock);
-	return (0);
+	return (done);
+}
+
+void	set_last_meal(t_philo *p)
+{
+	pthread_mutex_lock(&p->meal_lock);
+	p->last_meal = get_time_ms();
+	pthread_mutex_unlock(&p->meal_lock);
+}
+
+/// @brief The philosopher's own copy of the stop flag. Its lock is shared
+/// with the monitor only, so 1000 threads polling it don't queue up.
+int	philo_stopped(t_philo *p)
+{
+	int	stop;
+
+	pthread_mutex_lock(&p->meal_lock);
+	stop = p->stop;
+	pthread_mutex_unlock(&p->meal_lock);
+	return (stop);
 }

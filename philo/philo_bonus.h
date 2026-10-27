@@ -37,92 +37,58 @@ typedef struct s_parse
 	char					**arg;
 }							t_parse;
 
+/// @brief Per-philosopher data. Every philosopher is its own process with
+/// its own copy of this struct, so nothing here is shared with the others.
+/// last_meal_lock only protects last_meal between the philosopher's two
+/// threads: the main loop and its death monitor.
 typedef struct s_process
 {
-	int						i;
-	int						philo_id;
-	int						pid;
+	int						id;
+	pid_t					pid;
 	int						state;
-	int						done;
-
-	char					*var;
-	sem_t					*last_meal_lock;
-	long					last_meal;
-
 	long					last_action;
-
+	long					last_meal;
 	int						eaten;
-
-	int						forks;
-
-	long					start_time;
+	int						done;
+	sem_t					*last_meal_lock;
 	pthread_t				death_monitor;
-	int						sim_stop;
-
 	t_sim					*sim;
 }							t_process;
 
-/// @brief this is shared data.
-/// Writing here in a thread need a mutex to avoid race condition.
-///(only read is ok tho i think)
+/// @brief Settings are copied into every child at fork(); the named
+/// semaphores are the only state actually shared between processes.
+/// forks_pool:  one token per fork on the table.
+/// take_forks:  only one philosopher picks up forks at a time (no deadlock).
+/// print_lock:  keeps log lines whole; never released after the last line.
+/// stop_sim:    posted once by whoever ends the simulation.
+/// philos_done: posted once by each philosopher who ate musteat times.
+/// stop:        parent-only flag, tells the glutony monitor to stand down.
 typedef struct s_sim
 {
-	int						i;
 	int						nbof_philos;
-
-	long					start_time;
-
 	long					t2die;
 	long					t2eat;
 	long					t2sleep;
 	int						musteat;
-	t_process				*process;
+	long					start_time;
 
 	int						stop;
-	int						crash;
-
-	sem_t					*philos_done;
-	sem_t					*stop_sim;
 	sem_t					*forks_pool;
+	sem_t					*take_forks;
 	sem_t					*print_lock;
+	sem_t					*stop_sim;
+	sem_t					*philos_done;
 
+	t_process				*process;
 	pthread_t				glutony_monitor;
-
 }							t_sim;
 
-void						born2philo(t_sim *sim);
-void						kill_process(t_sim *sim, int to_kill);
-
-// monitor
-void						*death(void *arg);
-void						*glutony(void *arg);
-void						print_status(t_process *p, char *msg);
-
-// utils
-int							psleep(long time_in_ms);
-long						get_time_ms(void);
-void						kill_process(t_sim *sim, int to_kill);
-
-// checks
-void						check_done(t_process *p);
-int							check_single(t_process *p);
-
-// forks
-void						unlock_forks(t_sim *sim, t_process *p);
-void						lock_forks(t_sim *sim, t_process *p);
-
-// parse
+// parse / args
 int							parse(t_sim *sim, t_parse *parsing);
-
-// ini
-void						ini_sim(t_sim *sim);
-
-// free
-// void						freeall(t_sim *sim);
-void						freeall_exit(t_sim *sim, int err);
+int							pre_parse(t_parse *parsing, int ac, char **av);
+int							check_arg_count(t_parse *parsing);
 void						freeparse(t_parse *parsing);
-void						ending(t_sim *sim, int to_end);
-void						handle_crash(t_sim *sim, int to_kill);
+long						start_delay(int id, int nbof_philos, long t2eat);
 
 // minilft
 char						*ft_strjoinall(char **av, char *res);
@@ -131,5 +97,34 @@ int							nb_len(long nb);
 char						**ft_split(char const *s, char c);
 char						*ft_itoa(int n);
 int							ft_atoi(const char *str);
+int							print_error(char *msg);
+
+// ini
+void						ini_sim(t_sim *sim);
+void						unlink_sems(void);
+
+// routine
+void						start_simulation(t_sim *sim);
+
+// forks
+void						lock_forks(t_process *p);
+void						unlock_forks(t_process *p);
+
+// monitor
+void						*death(void *arg);
+void						*glutony(void *arg);
+
+// checks
+void						check_done(t_process *p);
+
+// utils
+long						get_time_ms(void);
+void						psleep(long time_in_ms);
+void						print_status(t_process *p, char *msg);
+
+// free
+void						end_simulation(t_sim *sim, int philos,
+								int has_glutony);
+void						freeall_exit(t_sim *sim, int status);
 
 #endif

@@ -6,30 +6,28 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 18:02:48 by adastugu          #+#    #+#             */
-/*   Updated: 2026/01/21 14:28:06 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/10/27 16:33:08 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	to_eat(t_philo *p)
+static void	to_eat(t_philo *p)
 {
-	if (p->state == THINKING)
-	{
-		lock_forks(p);
-		pthread_mutex_lock(&p->sim->stop_lock);
-		p->last_meal = get_time_ms();
-		pthread_mutex_unlock(&p->sim->stop_lock);
-		print_status(p, "has taken a fork");
-		print_status(p, "is eating");
-		pthread_mutex_lock(&p->sim->done_lock);
-		p->eaten++;
-		pthread_mutex_unlock(&p->sim->done_lock);
-		p->state = EATING;
-	}
+	if (p->state != THINKING)
+		return ;
+	lock_forks(p);
+	set_last_meal(p);
+	print_status(p, "is eating");
+	pthread_mutex_lock(&p->sim->done_lock);
+	p->eaten++;
+	pthread_mutex_unlock(&p->sim->done_lock);
+	p->state = EATING;
 }
 
-int	to_sleep_and_think(t_philo *p)
+/// @brief Moves EATING -> SLEEPING -> THINKING once enough time has passed.
+/// Called on every loop tick, so each transition happens as soon as it's due.
+static int	to_sleep_and_think(t_philo *p)
 {
 	if (p->state == EATING && get_time_ms() - p->last_meal >= p->sim->t2eat)
 	{
@@ -37,11 +35,11 @@ int	to_sleep_and_think(t_philo *p)
 		p->state = SLEEPING;
 		p->last_action = get_time_ms();
 		print_status(p, "is sleeping");
-		if (psleep(p->sim->t2sleep - 50, p))
+		if (psleep(p->sim->t2sleep - WAKE_MARGIN_MS, p))
 			return (1);
 	}
-	if (p->state == SLEEPING && get_time_ms()
-		- p->last_action >= p->sim->t2sleep)
+	if (p->state == SLEEPING
+		&& get_time_ms() - p->last_action >= p->sim->t2sleep)
 	{
 		p->state = THINKING;
 		print_status(p, "is thinking");
@@ -49,32 +47,11 @@ int	to_sleep_and_think(t_philo *p)
 	return (0);
 }
 
-void	stagger(t_philo *p)
-{
-	if (p->sim->nbof_philos % 2 != 0)
-	{
-		if (p->id == 0)
-			;
-		else if (p->id == 1)
-			psleep(p->sim->t2eat * 1.5, p);
-		else if (p->id == 2)
-			psleep(p->sim->t2eat / 2, p);
-		else
-		{
-			if (p->id % 2 != 0)
-				psleep(p->sim->t2eat * 2, p);
-			else
-				psleep(p->sim->t2eat, p);
-		}
-	}
-	else
-	{
-		if (p->id % 2 != 0)
-			psleep(p->sim->t2eat, p);
-	}
-}
-
-void	*life(void *arg)
+/// @brief Philosopher thread. Eating and the end of sleeping are not
+/// slept through but polled by this loop, so the usleep() at the bottom is
+/// what keeps it from spinning at 100% CPU. 600 us was the best trade-off
+/// between precision and CPU load in testing (e.g. 400 410 200 200).
+static void	*life(void *arg)
 {
 	t_philo	*p;
 
@@ -83,38 +60,42 @@ void	*life(void *arg)
 	set_last_meal(p);
 	if (check_single(p))
 		return (NULL);
-	stagger(p);
+	psleep(start_delay(p->id, p->sim->nbof_philos, p->sim->t2eat), p);
 	while (1)
 	{
 		to_eat(p);
-		if (check_stop(p->sim))
+		if (philo_stopped(p))
 			break ;
 		if (to_sleep_and_think(p))
 			break ;
-		usleep(500);
+		usleep(400);
 	}
-	unlock_frk_leftover(p);
+	if (p->state == EATING)
+		unlock_forks(p);
 	return (NULL);
 }
 
-int	born2philo_ma(t_sim *sim)
+/// @brief Starts one thread per philosopher plus the monitors, then waits
+/// for the simulation to end. Returns 1 if a thread could not be created.
+int	start_simulation(t_sim *sim)
 {
+	int	i;
+
 	sim->start_time = get_time_ms();
-	while (sim->i < sim->nbof_philos)
+	i = 0;
+	while (i < sim->nbof_philos)
 	{
-		sim->philo[sim->i].start_time = sim->start_time;
-		sim->philo[sim->i].last_meal = sim->start_time;
-		if (pthread_create(&sim->philothread[sim->i], NULL, &life,
-				&sim->philo[sim->i]))
-			return (1 + join(sim, sim->i));
-		sim->i++;
+		sim->philo[i].last_meal = sim->start_time;
+		if (pthread_create(&sim->philothread[i], NULL, &life, &sim->philo[i]))
+			return (stop_and_join(sim, i, 0), 1);
+		i++;
 	}
 	if (pthread_create(&sim->monitor[0], NULL, &death, sim))
-		return (1 + join(sim, sim->nbof_philos));
-	if (sim->musteat)
-		if (pthread_create(&sim->monitor[1], NULL, &glutony, sim))
-			return (1 + join(sim, sim->nbof_philos));
+		return (stop_and_join(sim, i, 0), 1);
+	if (sim->musteat
+		&& pthread_create(&sim->monitor[1], NULL, &glutony, sim))
+		return (stop_and_join(sim, i, 1), 1);
 	wait_sim_stop(sim);
-	join(sim, sim->nbof_philos);
+	stop_and_join(sim, i, 1 + (sim->musteat > 0));
 	return (0);
 }

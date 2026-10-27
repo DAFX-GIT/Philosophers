@@ -12,44 +12,29 @@
 
 #include "philo.h"
 
+/// @brief Even ids take their right fork first, odd ids their left one.
+/// Without this ordering, every philosopher could grab one fork and wait
+/// forever for the other (a circular wait, i.e. a deadlock).
 void	lock_forks(t_philo *philo)
 {
+	pthread_mutex_t	*first;
+	pthread_mutex_t	*second;
+
+	first = philo->left_fork;
+	second = philo->right_fork;
 	if (philo->id % 2 == 0)
 	{
-		pthread_mutex_lock(philo->right_fork);
-		print_status(philo, "has taken a fork");
-		philo->rfk = 1;
-		pthread_mutex_lock(philo->left_fork);
-		philo->lfk = 1;
+		first = philo->right_fork;
+		second = philo->left_fork;
 	}
-	else
-	{
-		pthread_mutex_lock(philo->left_fork);
-		print_status(philo, "has taken a fork");
-		philo->lfk = 1;
-		pthread_mutex_lock(philo->right_fork);
-		philo->rfk = 1;
-	}
+	pthread_mutex_lock(first);
+	print_status(philo, "has taken a fork");
+	pthread_mutex_lock(second);
+	print_status(philo, "has taken a fork");
 }
 
 void	unlock_forks(t_philo *philo)
 {
 	pthread_mutex_unlock(philo->right_fork);
 	pthread_mutex_unlock(philo->left_fork);
-	philo->rfk = 0;
-	philo->lfk = 0;
-}
-
-void	unlock_frk_leftover(t_philo *p)
-{
-	if (p->rfk)
-	{
-		pthread_mutex_unlock(p->right_fork);
-		p->rfk = 0;
-	}
-	if (p->lfk)
-	{
-		pthread_mutex_unlock(p->left_fork);
-		p->lfk = 0;
-	}
 }

@@ -12,35 +12,54 @@
 
 #include "philo.h"
 
+/// @brief Checks one philosopher. The cheap check only takes their own
+/// meal_lock. If they look starved, it re-checks while holding print_lock,
+/// so they can't print "is eating" between the check and the "died" line.
+static int	has_starved(t_sim *sim, int i)
+{
+	t_philo	*p;
+	int		starved;
+
+	p = &sim->philo[i];
+	pthread_mutex_lock(&p->meal_lock);
+	starved = get_time_ms() - p->last_meal >= sim->t2die;
+	pthread_mutex_unlock(&p->meal_lock);
+	if (!starved)
+		return (0);
+	pthread_mutex_lock(&sim->print_lock);
+	pthread_mutex_lock(&p->meal_lock);
+	starved = !p->stop && get_time_ms() - p->last_meal >= sim->t2die;
+	pthread_mutex_unlock(&p->meal_lock);
+	if (starved)
+	{
+		printf("%ld %d died\n", get_time_ms() - sim->start_time, p->id + 1);
+		stop_all(sim);
+	}
+	pthread_mutex_unlock(&sim->print_lock);
+	return (starved);
+}
+
+/// @brief Monitor thread: stops the simulation as soon as one philosopher
+/// has gone t2die ms without eating.
 void	*death(void *arg)
 {
 	t_sim	*sim;
+	int		i;
 
 	sim = (t_sim *)arg;
 	while (!check_stop(sim))
 	{
-		sim->i = 0;
-		while (sim->i < sim->nbof_philos)
-		{
-			pthread_mutex_lock(&sim->print_lock);
-			pthread_mutex_lock(&sim->stop_lock);
-			if (get_time_ms() - sim->philo[sim->i].last_meal >= sim->t2die)
-			{
-				sim->stop = 1;
-				printf("%ld %d %s\n", get_time_ms() - sim->start_time,
-					sim->philo[sim->i].id + 1, "died");
-				return (pthread_mutex_unlock(&sim->print_lock),
-					pthread_mutex_unlock(&sim->stop_lock), NULL);
-			}
-			pthread_mutex_unlock(&sim->print_lock);
-			pthread_mutex_unlock(&sim->stop_lock);
-			sim->i++;
-		}
+		i = 0;
+		while (i < sim->nbof_philos)
+			if (has_starved(sim, i++))
+				return (NULL);
 		usleep(400);
 	}
 	return (NULL);
 }
 
+/// @brief Monitor thread (only with the optional 5th argument): stops the
+/// simulation once every philosopher has eaten at least musteat times.
 void	*glutony(void *arg)
 {
 	t_sim	*sim;
@@ -52,7 +71,7 @@ void	*glutony(void *arg)
 	{
 		if (check_stop(sim))
 			return (NULL);
-		if (check_done(&sim->philo[i]) == 0)
+		if (!check_done(&sim->philo[i]))
 		{
 			usleep(3500);
 			continue ;
@@ -60,39 +79,29 @@ void	*glutony(void *arg)
 		i++;
 	}
 	pthread_mutex_lock(&sim->print_lock);
-	pthread_mutex_lock(&sim->stop_lock);
-	sim->stop = 1;
-	printf("%ld %s\n", get_time_ms() - sim->start_time,
-		"All philosophers have eaten their fill");
+	if (!check_stop(sim))
+	{
+		printf("%ld All philosophers have eaten their fill\n",
+			get_time_ms() - sim->start_time);
+		stop_all(sim);
+	}
 	pthread_mutex_unlock(&sim->print_lock);
-	pthread_mutex_unlock(&sim->stop_lock);
 	return (NULL);
 }
 
 void	wait_sim_stop(t_sim *sim)
 {
-	while (1)
-	{
-		pthread_mutex_lock(&sim->stop_lock);
-		if (sim->stop == 1)
-		{
-			pthread_mutex_unlock(&sim->stop_lock);
-			break ;
-		}
-		pthread_mutex_unlock(&sim->stop_lock);
+	while (!check_stop(sim))
 		usleep(1000);
-	}
 }
 
+/// @brief Thread-safe log line. Nothing is printed once the simulation
+/// has stopped, so no message can appear after "died".
 void	print_status(t_philo *p, char *msg)
 {
 	pthread_mutex_lock(&p->sim->print_lock);
-	pthread_mutex_lock(&p->sim->stop_lock);
-	if (!p->sim->stop)
-	{
+	if (!p->stop)
 		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id + 1,
 			msg);
-	}
-	pthread_mutex_unlock(&p->sim->stop_lock);
 	pthread_mutex_unlock(&p->sim->print_lock);
 }
