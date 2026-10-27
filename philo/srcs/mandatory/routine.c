@@ -56,11 +56,14 @@ static void	*life(void *arg)
 	t_philo	*p;
 
 	p = (t_philo *)arg;
+	if (wait_start(p))
+		return (NULL);
+	psleep(p->sim->start_time - get_time_ms(), p);
 	print_status(p, "is thinking");
-	set_last_meal(p);
 	if (check_single(p))
 		return (NULL);
-	psleep(start_delay(p->id, p->sim->nbof_philos, p->sim->t2eat), p);
+	psleep(p->sim->start_time - get_time_ms()
+		+ start_delay(p->id, p->sim->nbof_philos, p->sim->t2eat), p);
 	while (1)
 	{
 		to_eat(p);
@@ -75,21 +78,41 @@ static void	*life(void *arg)
 	return (NULL);
 }
 
+/// @brief Picks a start time just ahead and hands it to every philosopher
+/// through their own flag. Each one then waits for that time on the clock,
+/// so they all begin together, however long thread creation took.
+static void	release_philos(t_sim *sim)
+{
+	int	i;
+
+	sim->start_time = get_time_ms() + START_MARGIN_MS;
+	i = 0;
+	while (i < sim->nbof_philos)
+	{
+		pthread_mutex_lock(&sim->philo[i].meal_lock);
+		sim->philo[i].last_meal = sim->start_time;
+		sim->philo[i].started = 1;
+		pthread_mutex_unlock(&sim->philo[i].meal_lock);
+		i++;
+	}
+}
+
 /// @brief Starts one thread per philosopher plus the monitors, then waits
 /// for the simulation to end. Returns 1 if a thread could not be created.
 int	start_simulation(t_sim *sim)
 {
 	int	i;
 
-	sim->start_time = get_time_ms();
+	if (pthread_create(&sim->printer, NULL, &printer, sim))
+		return (1);
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
-		sim->philo[i].last_meal = sim->start_time;
 		if (pthread_create(&sim->philothread[i], NULL, &life, &sim->philo[i]))
 			return (stop_and_join(sim, i, 0), 1);
 		i++;
 	}
+	release_philos(sim);
 	if (pthread_create(&sim->monitor[0], NULL, &death, sim))
 		return (stop_and_join(sim, i, 0), 1);
 	if (sim->musteat

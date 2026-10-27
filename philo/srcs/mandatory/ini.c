@@ -22,6 +22,7 @@ static void	ini_philo(t_sim *sim, int id)
 	philo->eaten = 0;
 	philo->done = 0;
 	philo->stop = 0;
+	philo->started = 0;
 	philo->right_fork = &sim->forks[id];
 	philo->left_fork = &sim->forks[(id + 1) % sim->nbof_philos];
 	philo->sim = sim;
@@ -35,7 +36,10 @@ int	ini_sim(t_sim *sim)
 	sim->forks = malloc(sizeof(pthread_mutex_t) * sim->nbof_philos);
 	sim->philo = malloc(sizeof(t_philo) * sim->nbof_philos);
 	sim->philothread = malloc(sizeof(pthread_t) * sim->nbof_philos);
-	if (!sim->forks || !sim->philo || !sim->philothread)
+	sim->log = malloc(LOG_SIZE);
+	sim->log_out = malloc(LOG_SIZE);
+	if (!sim->forks || !sim->philo || !sim->philothread
+		|| !sim->log || !sim->log_out)
 		return (freeall(sim), print_error("Memory error\n"));
 	if (pthread_mutex_init(&sim->stop_lock, NULL)
 		|| pthread_mutex_init(&sim->print_lock, NULL)

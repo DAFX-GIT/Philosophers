@@ -32,21 +32,6 @@ void	psleep(long time_in_ms)
 		usleep(500);
 }
 
-static int	put_nbr(char *dst, long n)
-{
-	int	len;
-	int	i;
-
-	len = nb_len(n);
-	i = len;
-	while (i-- > 0)
-	{
-		dst[i] = n % 10 + '0';
-		n /= 10;
-	}
-	return (len);
-}
-
 /// @brief Builds "<time> <id> <msg>" and sends it with a single write().
 /// printf() would buffer the line inside this process, and a philosopher
 /// killed with SIGKILL loses its buffer when stdout is a pipe or a file.

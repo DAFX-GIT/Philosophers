@@ -98,6 +98,7 @@ char						**ft_split(char const *s, char c);
 char						*ft_itoa(int n);
 int							ft_atoi(const char *str);
 int							print_error(char *msg);
+int							put_nbr(char *dst, long n);
 
 // ini
 void						ini_sim(t_sim *sim);

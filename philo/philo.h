@@ -28,6 +28,15 @@
 /// remaining time precisely, so oversleeping can't make a philosopher late.
 # define WAKE_MARGIN_MS 10
 
+/// The simulation starts this many ms after the last thread is created.
+/// It only has to cover main's start-flag loop (< 1 ms even for 2000
+/// philosophers) plus one polling round, so it doesn't depend on the count.
+# define START_MARGIN_MS 2
+
+/// Size of each of the two log buffers, and the longest line we can append.
+# define LOG_SIZE 1048576
+# define LOG_LINE_MAX 64
+
 typedef struct s_philo	t_philo;
 typedef struct s_sim	t_sim;
 
@@ -41,7 +50,8 @@ typedef struct s_parse
 /// The settings are written once before the threads start, then only read.
 /// stop_lock guards the global `stop` (read by the monitors and main thread).
 /// done_lock guards every philosopher's `eaten` and `done`.
-/// print_lock keeps log lines from interleaving.
+/// print_lock guards the log buffer: it is only held to copy a line in,
+/// never during write(), so a slow terminal can't stall a philosopher.
 typedef struct s_sim
 {
 	int					nbof_philos;
@@ -57,6 +67,11 @@ typedef struct s_sim
 	pthread_mutex_t		print_lock;
 	pthread_mutex_t		*forks;
 
+	char				*log;
+	char				*log_out;
+	int					log_len;
+	pthread_t			printer;
+
 	t_philo				*philo;
 	pthread_t			*philothread;
 	pthread_t			monitor[2];
@@ -65,9 +80,9 @@ typedef struct s_sim
 /// @brief Per-philosopher data.
 /// `state` and `last_action` are only touched by the philosopher's own thread.
 /// A philosopher holds both of its forks exactly while state == EATING.
-/// meal_lock guards `last_meal` and `stop`, and is only ever taken by this
-/// philosopher and the monitor. `stop` is a private copy of sim->stop, so
-/// philosophers never wait on a global lock just to check it.
+/// meal_lock guards `last_meal`, `stop` and `started`, and is only ever taken
+/// by this philosopher and main/the monitor. `stop` and `started` are private
+/// copies of global events, so philosophers never wait on a global lock.
 typedef struct s_philo
 {
 	int					id;
@@ -79,6 +94,7 @@ typedef struct s_philo
 	int					done;
 
 	int					stop;
+	int					started;
 	pthread_mutex_t		meal_lock;
 	pthread_mutex_t		*left_fork;
 	pthread_mutex_t		*right_fork;
@@ -102,6 +118,7 @@ int						print_error(char *msg);
 long					get_time_ms(void);
 void					print_status(t_philo *p, char *msg);
 int						psleep(long time_in_ms, t_philo *p);
+int						wait_start(t_philo *p);
 
 // routine
 int						start_simulation(t_sim *sim);
@@ -112,6 +129,12 @@ void					unlock_forks(t_philo *philo);
 
 // ini
 int						ini_sim(t_sim *sim);
+
+// log
+void					log_line(t_sim *sim, long time, int id, char *msg);
+void					wait_log_space(t_sim *sim);
+void					*printer(void *arg);
+int						put_nbr(char *dst, long n);
 
 // monitor
 void					*death(void *arg);

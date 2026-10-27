@@ -24,8 +24,8 @@ MANDATORY_DIR = srcs/mandatory
 COMMON_DIR = srcs/common
 BONUS_DIR = srcs/bonus
 
-MANDATORY_SRCS = main.c routine.c forks.c ini.c monitor.c checks.c free.c utils.c
-COMMON_SRCS = parse.c args.c start_delay.c minilft.c ft_split.c
+MANDATORY_SRCS = main.c routine.c forks.c ini.c monitor.c checks.c free.c utils.c log.c
+COMMON_SRCS = parse.c args.c start_delay.c put_nbr.c minilft.c ft_split.c
 BONUS_SRCS = main_bonus.c routine_bonus.c monitor_bonus.c ini_bonus.c forks_bonus.c checks_bonus.c free_bonus.c utils_bonus.c
 
 OBJS_DIR = objs

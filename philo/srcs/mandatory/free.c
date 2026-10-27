@@ -19,6 +19,8 @@ void	freeall(t_sim *sim)
 	free(sim->forks);
 	free(sim->philo);
 	free(sim->philothread);
+	free(sim->log);
+	free(sim->log_out);
 	free(sim);
 }
 
@@ -38,8 +40,9 @@ void	destroy_mutexes(t_sim *sim)
 }
 
 /// @brief Sets the stop flag, then joins the first `philos` philosopher
-/// threads and the first `monitors` monitor threads. Only threads that were
-/// actually created are joined, so it is safe to call on a partial start.
+/// threads, the first `monitors` monitor threads and the printer. Only
+/// threads that were actually created are joined, so it is safe to call
+/// on a partial start (the printer is always created first).
 void	stop_and_join(t_sim *sim, int philos, int monitors)
 {
 	int	i;
@@ -53,6 +56,7 @@ void	stop_and_join(t_sim *sim, int philos, int monitors)
 	i = 0;
 	while (i < monitors)
 		pthread_join(sim->monitor[i++], NULL);
+	pthread_join(sim->printer, NULL);
 }
 
 /// @brief Ends the simulation: sets the global flag, then every

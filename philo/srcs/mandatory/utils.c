@@ -37,3 +37,24 @@ int	psleep(long time_in_ms, t_philo *p)
 	}
 	return (0);
 }
+
+/// @brief Waits for main to set this philosopher's own start flag.
+/// Returns 1 if the simulation was stopped first (thread creation failed).
+int	wait_start(t_philo *p)
+{
+	int	go;
+	int	stop;
+
+	go = 0;
+	stop = 0;
+	while (!go && !stop)
+	{
+		pthread_mutex_lock(&p->meal_lock);
+		go = p->started;
+		stop = p->stop;
+		pthread_mutex_unlock(&p->meal_lock);
+		if (!go && !stop)
+			usleep(600);
+	}
+	return (stop);
+}

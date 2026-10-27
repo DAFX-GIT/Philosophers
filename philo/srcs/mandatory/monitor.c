@@ -27,12 +27,13 @@ static int	has_starved(t_sim *sim, int i)
 	if (!starved)
 		return (0);
 	pthread_mutex_lock(&sim->print_lock);
+	wait_log_space(sim);
 	pthread_mutex_lock(&p->meal_lock);
 	starved = !p->stop && get_time_ms() - p->last_meal >= sim->t2die;
 	pthread_mutex_unlock(&p->meal_lock);
 	if (starved)
 	{
-		printf("%ld %d died\n", get_time_ms() - sim->start_time, p->id + 1);
+		log_line(sim, get_time_ms() - sim->start_time, p->id + 1, "died");
 		stop_all(sim);
 	}
 	pthread_mutex_unlock(&sim->print_lock);
@@ -71,18 +72,17 @@ void	*glutony(void *arg)
 	{
 		if (check_stop(sim))
 			return (NULL);
-		if (!check_done(&sim->philo[i]))
-		{
+		if (check_done(&sim->philo[i]))
+			i++;
+		else
 			usleep(3500);
-			continue ;
-		}
-		i++;
 	}
 	pthread_mutex_lock(&sim->print_lock);
+	wait_log_space(sim);
 	if (!check_stop(sim))
 	{
-		printf("%ld All philosophers have eaten their fill\n",
-			get_time_ms() - sim->start_time);
+		log_line(sim, get_time_ms() - sim->start_time, 0,
+			"All philosophers have eaten their fill");
 		stop_all(sim);
 	}
 	pthread_mutex_unlock(&sim->print_lock);
@@ -100,8 +100,8 @@ void	wait_sim_stop(t_sim *sim)
 void	print_status(t_philo *p, char *msg)
 {
 	pthread_mutex_lock(&p->sim->print_lock);
+	wait_log_space(p->sim);
 	if (!p->stop)
-		printf("%ld %d %s\n", get_time_ms() - p->sim->start_time, p->id + 1,
-			msg);
+		log_line(p->sim, get_time_ms() - p->sim->start_time, p->id + 1, msg);
 	pthread_mutex_unlock(&p->sim->print_lock);
 }
