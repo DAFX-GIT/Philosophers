@@ -31,7 +31,7 @@ void	destroy_mutexes(t_sim *sim)
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
-		pthread_mutex_destroy(&sim->philo[i].meal_lock);
+		pthread_mutex_destroy(&sim->philo[i].philo_lock);
 		pthread_mutex_destroy(&sim->forks[i++]);
 	}
 	pthread_mutex_destroy(&sim->stop_lock);
@@ -72,9 +72,9 @@ void	stop_all(t_sim *sim)
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
-		pthread_mutex_lock(&sim->philo[i].meal_lock);
+		pthread_mutex_lock(&sim->philo[i].philo_lock);
 		sim->philo[i].stop = 1;
-		pthread_mutex_unlock(&sim->philo[i].meal_lock);
+		pthread_mutex_unlock(&sim->philo[i].philo_lock);
 		i++;
 	}
 }

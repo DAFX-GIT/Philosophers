@@ -66,7 +66,7 @@ static void	life(t_process *p)
 	}
 }
 
-/// @brief Forks one process per philosopher, starts the glutony monitor,
+/// @brief Forks one process per philosopher, starts the gluttony monitor,
 /// then sleeps until someone posts stop_sim (a death, or everyone ate).
 void	start_simulation(t_sim *sim)
 {
@@ -86,7 +86,7 @@ void	start_simulation(t_sim *sim)
 			life(&sim->process[i]);
 		i++;
 	}
-	if (pthread_create(&sim->glutony_monitor, NULL, &glutony, sim))
+	if (pthread_create(&sim->gluttony_monitor, NULL, &gluttony, sim))
 	{
 		end_simulation(sim, i, 0);
 		freeall_exit(sim, print_error("Thread error\n"));

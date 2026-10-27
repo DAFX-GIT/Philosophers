@@ -62,7 +62,7 @@ typedef struct s_process
 /// print_lock:  keeps log lines whole; never released after the last line.
 /// stop_sim:    posted once by whoever ends the simulation.
 /// philos_done: posted once by each philosopher who ate musteat times.
-/// stop:        parent-only flag, tells the glutony monitor to stand down.
+/// stop:        parent-only flag, tells the gluttony monitor to stand down.
 typedef struct s_sim
 {
 	int						nbof_philos;
@@ -80,7 +80,7 @@ typedef struct s_sim
 	sem_t					*philos_done;
 
 	t_process				*process;
-	pthread_t				glutony_monitor;
+	pthread_t				gluttony_monitor;
 }							t_sim;
 
 // parse / args
@@ -113,7 +113,7 @@ void						unlock_forks(t_process *p);
 
 // monitor
 void						*death(void *arg);
-void						*glutony(void *arg);
+void						*gluttony(void *arg);
 
 // checks
 void						check_done(t_process *p);
@@ -125,7 +125,7 @@ void						print_status(t_process *p, char *msg);
 
 // free
 void						end_simulation(t_sim *sim, int philos,
-								int has_glutony);
+								int has_gluttony);
 void						freeall_exit(t_sim *sim, int status);
 
 #endif

@@ -80,7 +80,7 @@ typedef struct s_sim
 /// @brief Per-philosopher data.
 /// `state` and `last_action` are only touched by the philosopher's own thread.
 /// A philosopher holds both of its forks exactly while state == EATING.
-/// meal_lock guards `last_meal`, `stop` and `started`, and is only ever taken
+/// philo_lock guards `last_meal`, `stop` and `started`, and is only ever taken
 /// by this philosopher and main/the monitor. `stop` and `started` are private
 /// copies of global events, so philosophers never wait on a global lock.
 typedef struct s_philo
@@ -95,7 +95,7 @@ typedef struct s_philo
 
 	int					stop;
 	int					started;
-	pthread_mutex_t		meal_lock;
+	pthread_mutex_t		philo_lock;
 	pthread_mutex_t		*left_fork;
 	pthread_mutex_t		*right_fork;
 	t_sim				*sim;
@@ -138,7 +138,7 @@ int						put_nbr(char *dst, long n);
 
 // monitor
 void					*death(void *arg);
-void					*glutony(void *arg);
+void					*gluttony(void *arg);
 void					wait_sim_stop(t_sim *sim);
 
 // checks

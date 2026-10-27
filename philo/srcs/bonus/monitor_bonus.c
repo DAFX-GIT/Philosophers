@@ -42,7 +42,7 @@ void	*death(void *arg)
 /// philos_done, then ends the simulation. `stop` is only read after
 /// print_lock is acquired, so if a philosopher died first (and kept the
 /// lock), this thread only wakes up once the parent has set `stop`.
-void	*glutony(void *arg)
+void	*gluttony(void *arg)
 {
 	t_sim	*sim;
 	int		i;

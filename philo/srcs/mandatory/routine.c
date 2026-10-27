@@ -49,7 +49,7 @@ static int	to_sleep_and_think(t_philo *p)
 
 /// @brief Philosopher thread. Eating and the end of sleeping are not
 /// slept through but polled by this loop, so the usleep() at the bottom is
-/// what keeps it from spinning at 100% CPU. 600 us was the best trade-off
+/// what keeps it from spinning at 100% CPU. 400 us was the best trade-off
 /// between precision and CPU load in testing (e.g. 400 410 200 200).
 static void	*life(void *arg)
 {
@@ -89,10 +89,10 @@ static void	release_philos(t_sim *sim)
 	i = 0;
 	while (i < sim->nbof_philos)
 	{
-		pthread_mutex_lock(&sim->philo[i].meal_lock);
+		pthread_mutex_lock(&sim->philo[i].philo_lock);
 		sim->philo[i].last_meal = sim->start_time;
 		sim->philo[i].started = 1;
-		pthread_mutex_unlock(&sim->philo[i].meal_lock);
+		pthread_mutex_unlock(&sim->philo[i].philo_lock);
 		i++;
 	}
 }
@@ -116,7 +116,7 @@ int	start_simulation(t_sim *sim)
 	if (pthread_create(&sim->monitor[0], NULL, &death, sim))
 		return (stop_and_join(sim, i, 0), 1);
 	if (sim->musteat
-		&& pthread_create(&sim->monitor[1], NULL, &glutony, sim))
+		&& pthread_create(&sim->monitor[1], NULL, &gluttony, sim))
 		return (stop_and_join(sim, i, 1), 1);
 	wait_sim_stop(sim);
 	stop_and_join(sim, i, 1 + (sim->musteat > 0));

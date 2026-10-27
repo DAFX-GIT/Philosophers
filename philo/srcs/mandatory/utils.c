@@ -49,10 +49,10 @@ int	wait_start(t_philo *p)
 	stop = 0;
 	while (!go && !stop)
 	{
-		pthread_mutex_lock(&p->meal_lock);
+		pthread_mutex_lock(&p->philo_lock);
 		go = p->started;
 		stop = p->stop;
-		pthread_mutex_unlock(&p->meal_lock);
+		pthread_mutex_unlock(&p->philo_lock);
 		if (!go && !stop)
 			usleep(600);
 	}

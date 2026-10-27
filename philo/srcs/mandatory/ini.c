@@ -49,7 +49,7 @@ int	ini_sim(t_sim *sim)
 	while (i < sim->nbof_philos)
 	{
 		if (pthread_mutex_init(&sim->forks[i], NULL)
-			|| pthread_mutex_init(&sim->philo[i].meal_lock, NULL))
+			|| pthread_mutex_init(&sim->philo[i].philo_lock, NULL))
 			return (freeall(sim), print_error("Mutex error\n"));
 		ini_philo(sim, i);
 		i++;

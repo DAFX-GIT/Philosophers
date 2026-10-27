@@ -13,7 +13,7 @@
 #include "philo.h"
 
 /// @brief Checks one philosopher. The cheap check only takes their own
-/// meal_lock. If they look starved, it re-checks while holding print_lock,
+/// philo_lock. If they look starved, it re-checks while holding print_lock,
 /// so they can't print "is eating" between the check and the "died" line.
 static int	has_starved(t_sim *sim, int i)
 {
@@ -21,16 +21,16 @@ static int	has_starved(t_sim *sim, int i)
 	int		starved;
 
 	p = &sim->philo[i];
-	pthread_mutex_lock(&p->meal_lock);
+	pthread_mutex_lock(&p->philo_lock);
 	starved = get_time_ms() - p->last_meal >= sim->t2die;
-	pthread_mutex_unlock(&p->meal_lock);
+	pthread_mutex_unlock(&p->philo_lock);
 	if (!starved)
 		return (0);
 	pthread_mutex_lock(&sim->print_lock);
 	wait_log_space(sim);
-	pthread_mutex_lock(&p->meal_lock);
+	pthread_mutex_lock(&p->philo_lock);
 	starved = !p->stop && get_time_ms() - p->last_meal >= sim->t2die;
-	pthread_mutex_unlock(&p->meal_lock);
+	pthread_mutex_unlock(&p->philo_lock);
 	if (starved)
 	{
 		log_line(sim, get_time_ms() - sim->start_time, p->id + 1, "died");
@@ -61,7 +61,7 @@ void	*death(void *arg)
 
 /// @brief Monitor thread (only with the optional 5th argument): stops the
 /// simulation once every philosopher has eaten at least musteat times.
-void	*glutony(void *arg)
+void	*gluttony(void *arg)
 {
 	t_sim	*sim;
 	int		i;

@@ -47,9 +47,9 @@ int	check_done(t_philo *p)
 
 void	set_last_meal(t_philo *p)
 {
-	pthread_mutex_lock(&p->meal_lock);
+	pthread_mutex_lock(&p->philo_lock);
 	p->last_meal = get_time_ms();
-	pthread_mutex_unlock(&p->meal_lock);
+	pthread_mutex_unlock(&p->philo_lock);
 }
 
 /// @brief The philosopher's own copy of the stop flag. Its lock is shared
@@ -58,8 +58,8 @@ int	philo_stopped(t_philo *p)
 {
 	int	stop;
 
-	pthread_mutex_lock(&p->meal_lock);
+	pthread_mutex_lock(&p->philo_lock);
 	stop = p->stop;
-	pthread_mutex_unlock(&p->meal_lock);
+	pthread_mutex_unlock(&p->philo_lock);
 	return (stop);
 }
