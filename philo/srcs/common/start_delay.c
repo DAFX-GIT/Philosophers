@@ -37,3 +37,24 @@ long	start_delay(int id, int nbof_philos, long t2eat)
 		return (t2eat * 2);
 	return (t2eat);
 }
+
+/// @brief Minimum time a philosopher thinks before reaching for the forks
+/// again. Without it, someone whose eat + sleep is shorter than the cycle
+/// above comes back early and can win the forks from a neighbour who has
+/// waited longer (3 610 200 100 died that way). The cycle is 2 * t2eat for
+/// an even count, 3 * t2eat for 3 (only one can eat at a time), and
+/// 2.5 * t2eat for larger odd counts.
+long	think_delay(int nbof_philos, long t2eat, long t2sleep)
+{
+	long	cycle;
+
+	if (nbof_philos % 2 == 0)
+		cycle = t2eat * 2;
+	else if (nbof_philos == 3)
+		cycle = t2eat * 3;
+	else
+		cycle = t2eat * 5 / 2;
+	if (cycle - t2eat - t2sleep < 0)
+		return (0);
+	return (cycle - t2eat - t2sleep);
+}

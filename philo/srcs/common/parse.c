@@ -55,6 +55,7 @@ void	get_value(t_sim *sim, int ac, char **av)
 	sim->t2die = ft_atoi(av[1]);
 	sim->t2eat = ft_atoi(av[2]);
 	sim->t2sleep = ft_atoi(av[3]);
+	sim->t2think = think_delay(sim->nbof_philos, sim->t2eat, sim->t2sleep);
 	if (ac == 5)
 		sim->musteat = ft_atoi(av[4]);
 }

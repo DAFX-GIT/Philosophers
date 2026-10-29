@@ -6,15 +6,22 @@
 /*   By: adastugu <adastugu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/05 18:02:48 by adastugu          #+#    #+#             */
-/*   Updated: 2026/10/27 16:33:08 by adastugu         ###   ########.fr       */
+/*   Updated: 2026/10/29 14:05:41 by adastugu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/// @brief Takes the forks once the philosopher is thinking and, after the
+/// first meal, has spent t2think doing so (counted from the last meal so
+/// polling delays don't add up from one cycle to the next).
 static void	to_eat(t_philo *p)
 {
-	if (p->state != THINKING)
+	long	cycle;
+
+	cycle = p->sim->t2eat + p->sim->t2sleep + p->sim->t2think;
+	if (p->state != THINKING
+		|| (p->eaten && get_time_ms() - p->last_meal < cycle))
 		return ;
 	lock_forks(p);
 	set_last_meal(p);
@@ -49,7 +56,7 @@ static int	to_sleep_and_think(t_philo *p)
 
 /// @brief Philosopher thread. Eating and the end of sleeping are not
 /// slept through but polled by this loop, so the usleep() at the bottom is
-/// what keeps it from spinning at 100% CPU. 400 us was the best trade-off
+/// what keeps it from spinning at 100% CPU. 600 us was the best trade-off
 /// between precision and CPU load in testing (e.g. 400 410 200 200).
 static void	*life(void *arg)
 {
@@ -71,7 +78,7 @@ static void	*life(void *arg)
 			break ;
 		if (to_sleep_and_think(p))
 			break ;
-		usleep(400);
+		usleep(600);
 	}
 	if (p->state == EATING)
 		unlock_forks(p);

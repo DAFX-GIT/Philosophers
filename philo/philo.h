@@ -58,6 +58,7 @@ typedef struct s_sim
 	long				t2die;
 	long				t2eat;
 	long				t2sleep;
+	long				t2think;
 	int					musteat;
 	long				start_time;
 
@@ -107,6 +108,8 @@ int						pre_parse(t_parse *parsing, int ac, char **av);
 int						check_arg_count(t_parse *parsing);
 void					freeparse(t_parse *parsing);
 long					start_delay(int id, int nbof_philos, long t2eat);
+long					think_delay(int nbof_philos, long t2eat,
+							long t2sleep);
 
 // utils
 size_t					ft_strlen(char *str);

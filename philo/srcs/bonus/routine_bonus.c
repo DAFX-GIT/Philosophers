@@ -12,9 +12,16 @@
 
 #include "philo_bonus.h"
 
+/// @brief Takes the forks once the philosopher is thinking and, after the
+/// first meal, has spent t2think doing so (counted from the last meal so
+/// polling delays don't add up from one cycle to the next).
 static void	to_eat(t_process *p)
 {
-	if (p->state != THINKING)
+	long	cycle;
+
+	cycle = p->sim->t2eat + p->sim->t2sleep + p->sim->t2think;
+	if (p->state != THINKING
+		|| (p->eaten && get_time_ms() - p->last_meal < cycle))
 		return ;
 	lock_forks(p);
 	sem_wait(p->last_meal_lock);
